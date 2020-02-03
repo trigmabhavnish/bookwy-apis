@@ -18,6 +18,7 @@ const {
     validateUser,
     validateEmail,
     validateUserLogin,
+    validateResetPassword,
 } = require('../models/user');
 
 
@@ -114,7 +115,7 @@ controller.post('/forgotPassword', validate(validateEmail), async (req, res) => 
 
                 const name = user[0].first_name + ' ' + user[0].last_name
                 const forgotPasswordLink = config.get('webEndPointStaging') + '/user/reset-password?token=' + verifyToken;
-                console.log(forgotPasswordLink);
+                //console.log(forgotPasswordLink);
                 const mailBody = {
                     to: req.body.email,
                     from: config.get('fromEmail'),
@@ -148,10 +149,53 @@ controller.post('/verifyAuthToken', async (req, res) => {
             // delete Verification String in DB
             userSchema.deleteVerificationToken(req.body.verifyToken, async function (err, updateVerifyToken) { });
 
-            res.status(def.API_STATUS.SUCCESS.OK).send({ response: true });
+            res.status(def.API_STATUS.SUCCESS.OK).send({ response: true, user_id: user[0].user_id});
 
         } else {
             return res.status(def.API_STATUS.CLIENT_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.FAILED_TO_VERIFY });
+        }
+
+    });
+});
+
+controller.post('/resetPassword', validate(validateResetPassword), async (req, res) => {
+
+    //checking user id exists
+    userSchema.fetchUserById(req.body.user_id, async function (err, user) {
+        if (err) { return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.PASSWORD_UPDATE_ERROR }); }
+
+        // if Email Exists in the system
+        if (user.length > 0) {
+
+            
+
+            // Update Verification String in DB
+            userSchema.resetPassword(req.body.password, req.body.user_id, async function (err, updatePassword) {
+
+                if (err) { return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.PASSWORD_UPDATE_ERROR }); }
+
+                const name = user[0].first_name + ' ' + user[0].last_name
+                
+                //console.log(forgotPasswordLink);
+                const mailBody = {
+                    to: user[0].email,
+                    from: config.get('fromEmail'),
+                    Subject: "Bookwy: Reset Password Successfully.",
+                    template_id: config.get('email_templates.reset_password_template'),
+                    dynamic_template_data: {                        
+                        email: user[0].email,
+                        name: name
+                    }
+                }
+                await sendMail(mailBody);
+
+                res.status(def.API_STATUS.SUCCESS.OK).send({ response: msg.RESPONSE.PASSWORD_UPDATED });
+
+            });
+
+
+        } else {
+            return res.status(def.API_STATUS.CLIENT_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.PASSWORD_UPDATE_ERROR });
         }
 
     });

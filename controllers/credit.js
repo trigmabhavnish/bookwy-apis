@@ -45,7 +45,7 @@ controller.post('/onTransactionComplete', validate(validateTransactionData), asy
     var authToken = req.body.auth_token;
 
     //Verify User 
-    userSchema.fetchUserDetails(authToken, function (err, userDetails) {
+    userSchema.fetchUserByAuthToken(authToken, function (err, userDetails) {
         if (err) { return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.UNABLE_TO_ADD_CREDITS }); }
 
         if (userDetails.length > 0) {

@@ -79,8 +79,20 @@ userSchema.checkEmailAlreadyExists = function (email, result) {
     });
 };
 
-userSchema.fetchUserDetails = function (authToken, result) {
+userSchema.fetchUserByAuthToken = function (authToken, result) {
     sql("Select user_id from fw_user where auth_token = ? and status = 'Y'", authToken, function (err, res) {
+        if (err) {
+            //console.log(err);              
+            result(err, null);
+        } else {
+            //console.log(res);
+            result(null, res);
+        }
+    });
+};
+
+userSchema.fetchUserById = function (user_id, result) {
+    sql("Select email, first_name, last_name from fw_user where user_id = ? and status = 'Y'", user_id, function (err, res) {
         if (err) {
             //console.log(err);              
             result(err, null);
@@ -164,6 +176,21 @@ userSchema.updateVerificationToken = function (verifyToken, email, result) {
     });
 };
 
+userSchema.resetPassword = async function (password, user_id, result) {
+
+    const hashPassword = await bcrypt.hash(password, await bcrypt.genSalt(10));
+
+    sql("UPDATE fw_user SET password = ? WHERE user_id = ?", [hashPassword, user_id], function (err, res) {
+        if (err) {
+            //console.log(err);              
+            result(err, null);
+        } else {
+            //console.log(res);
+            result(null, res);
+        }
+    });
+};
+
 userSchema.deleteVerificationToken = function (verifyToken, result) {
     sql("UPDATE fw_user SET verification_string = '' WHERE verification_string = ?", verifyToken, function (err, res) {
         if (err) {
@@ -220,8 +247,21 @@ function validateEmail(emailData) {
     return Joi.validate(emailData, schema, { allowUnknown: true });
 }
 
+function validateResetPassword(resetData) {
+
+    // define the validation schema
+    let schema = Joi.object().keys({
+        password: Joi.string().trim().min(10).max(50).required(),
+        confirm_password: Joi.any().valid(Joi.ref('password')).options({ language: { any: { allowOnly: "and Password don't match" } } }),
+        user_id: Joi.number().required()
+
+    }).unknown(true);
+    return Joi.validate(resetData, schema, { allowUnknown: true });
+}
+
 module.exports.userSchema = userSchema;
 module.exports.userJoiSchema = userJoiSchema;
 module.exports.validateUser = validateUser;
 module.exports.validateEmail = validateEmail;
+module.exports.validateResetPassword = validateResetPassword;
 module.exports.validateUserLogin = validateUserLogin;
