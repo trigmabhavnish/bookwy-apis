@@ -1,40 +1,12 @@
 const config = require('config');
 const def = require('../models/def/statuses');
 const msg = require('../models/def/responsemessages');
-//const upload = require('../helpers/upload');
+const upload = require('../helpers/upload');
 const _ = require('lodash'); //js utility lib
 const fs = require('fs');
 const jwt = require('jsonwebtoken'); //generate json token
 const validate = require('../interceptors/validate');
 const bcrypt = require('bcryptjs'); // for password encryption
-
-// Upload Drive to google Drive
-const readline = require('readline');
-const { google } = require('googleapis');
-const multer = require('multer');
-var storage = multer.memoryStorage()
-var upload = multer({ storage: storage });
-const stream = require('stream');
-
-// The file token.json stores the user's access and refresh tokens, and is
-// created automatically when the authorization flow completes for the first
-// time.
-const TOKEN_PATH = 'config/token.json';
-const { client_secret, client_id, redirect_uris } = config.google_drive_api;
-
-const oAuth2Client = new google.auth.OAuth2(
-    client_id, client_secret, redirect_uris[0]);
-
-// Check if we have previously stored a token.
-fs.readFile(TOKEN_PATH, (err, token) => {
-    //if (err) return getAccessToken(oAuth2Client, callback);
-    oAuth2Client.setCredentials(JSON.parse(token));
-});
-
-const drive = google.drive({ version: 'v3', auth: oAuth2Client });
-
-
-
 const express = require('express');
 const controller = express.Router();
 
@@ -105,55 +77,8 @@ controller.post('/addNewProject', validate(validateProject), async (req, res) =>
 
 
 
-/**
- * Function to upload image on google drive and return uploaded path
- */
-controller.post('/imageUploadtoBucket', function (req, file, res) {
-    let fileObjects = file;
-    //console.log(fileObjects)
-    let files = [];
-    if (fileObjects) {
-        for (let fileObject in fileObjects) {
-            let bufferStream = new stream.PassThrough();
-            bufferStream.end(fileObject.buffer);
-            gUpload(bufferStream, Date.now().toString() + '_' + fileObject.originalname, fileObject.mimetype).then(function (result) {
-                files.push(result);
-            }).catch(function (error) {
-                console.log('error', error);
-                /*res.status(500);
-                res.send({
-                  status: 500,
-                  error: error,
-                }); */
-            });
-        }
-
-        console.log('files', files);
-        //req.session.files = files;
-        //next();
-    } else {
-        console.log("hello");
-        //req.session.files = files;
-        //next();
-    }
-});
 
 
-// it will upload the file to googleDrive
-async function gUpload(stream, filename, mimeType) {
-    const res = await drive.files.create({
-        requestBody: {
-            name: filename,
-            mimeType: mimeType,
-            parents: [config.google_drive_api.folder_id],
-        },
-        media: {
-            mimeType: mimeType,
-            body: stream,
-        },
-    });
-    return res.data;
-}
 
 
 
