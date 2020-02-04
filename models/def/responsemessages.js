@@ -17,7 +17,11 @@ const RESPONSE = {
     FORGOT_PASSWORD_RESPONSE: "We have sent you a mail with password reset instructions.",
     PROJECT_ADDED: "Project added successfully.",
     FAILED_TO_SEND_EMAIL: "Email failed to send for some unknown reason. Please try again later.",
-    FAILED_TO_VERIFY: "Failed to verify your details."
+    FAILED_TO_VERIFY: "Token expired or Failed to verify your account. Please try again.",
+    PASSWORD_UPDATED: "Password updated successfully.",
+    PASSWORD_UPDATE_ERROR: "Failed to update your password. Please try again later.",
+    FAILED_TO_UPLOAD_DOC: "Ooops, unable to upload your document. please try again later.",
+    DOC_UPLOAD_SUCCESSFULLY: "Document upload successfully.",
 
 };
 
