@@ -10,6 +10,10 @@ const bcrypt = require('bcryptjs'); // for password encryption
 const express = require('express');
 const controller = express.Router();
 
+const {
+	userSchema
+} = require('../models/user');
+
 const aws = require('aws-sdk');
 aws.config.update({
 	secretAccessKey: config.get('aws.secretKey'),
@@ -62,6 +66,24 @@ controller.post('/deleteObject', function (req, res) {
 				}
 			});
 		}
+	});
+});
+
+controller.post('/getUserCredits', async (req, res) => {
+	console.log('headers', req.headers);
+
+	let authToken = req.headers['x-auth-token'];
+	//checking user id exists
+	userSchema.fetchUserByAuthToken(authToken, async function (err, user) {
+		if (err) { return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.FAILED_TO_VERIFY }); }
+
+		// if User ID exist in the system
+		if (user.length > 0) {
+			res.status(def.API_STATUS.SUCCESS.OK).send({ response: msg.RESPONSE.SUCCESS_FETCH_DETAILS, available_credits: (user[0].account_balance == null)? 0 : user[0].account_balance });
+		} else {
+			return res.status(def.API_STATUS.CLIENT_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.FAILED_TO_VERIFY });
+		}
+
 	});
 });
 
