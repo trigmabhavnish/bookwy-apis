@@ -10,6 +10,14 @@ const bcrypt = require('bcryptjs'); // for password encryption
 const express = require('express');
 const controller = express.Router();
 
+const aws = require('aws-sdk');
+aws.config.update({
+	secretAccessKey: config.get('aws.secretKey'),
+	accessKeyId: config.get('aws.accessKey'),
+	region: config.get('aws.region')
+});
+const s3 = new aws.S3();
+
 /**
  * Function to upload image on aws s3 bucket and return uploaded path
  */
@@ -19,14 +27,41 @@ controller.post('/imageUploadtoBucket', function (req, res) {
 		if (err) {
 			return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.FAILED_TO_UPLOAD_DOC });
 		}
-		//console.log(req)
+
 		return res.status(def.API_STATUS.SUCCESS.OK).send({
-            response: msg.RESPONSE.DOC_UPLOAD_SUCCESSFULLY,
+			response: msg.RESPONSE.DOC_UPLOAD_SUCCESSFULLY,
 			fileLocation: req.file.location,
 			fileKey: req.file.key,
 			fileName: req.file.originalname,
 			fileMimeType: req.file.mimetype
 		});
+	});
+});
+
+/**
+ * Function to delete object from aws s3 bucket
+ */
+controller.post('/deleteObject', function (req, res) {
+
+	let params = {
+		Bucket: config.get('aws.bucket'),
+		Key: req.body.fileKey
+	};
+
+
+	s3.headObject(params, function (err, data) {
+
+		if (err) {
+			return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.FILE_NOT_FOUND });
+		} else {
+			s3.deleteObject(params, function (err, data) {
+				if (err) {
+					return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: err.messege });
+				} else {
+					return res.status(def.API_STATUS.SUCCESS.OK).send({ response: msg.RESPONSE.DOC_REMOVE_SUCCESSFULLY });
+				}
+			});
+		}
 	});
 });
 
