@@ -70,7 +70,7 @@ controller.post('/deleteObject', function (req, res) {
 });
 
 controller.post('/getUserCredits', async (req, res) => {
-	console.log('headers', req.headers);
+	//console.log('headers', req.headers);
 
 	let authToken = req.headers['x-auth-token'];
 	//checking user id exists

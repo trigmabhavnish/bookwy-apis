@@ -36,13 +36,16 @@ controller.post('/getProjectPackages', async (req, res) => {
  * get Project Type
  */
 controller.post('/addNewProject', validate(validateProject), async (req, res) => {
+
+    console.log(req.body);
     // Fetch UserDetails using Auth Token
-    var authToken = req.body.auth_token;
+    let authToken = req.headers['x-auth-token'];
     //Verify User 
     userSchema.fetchUserByAuthToken(authToken, function (err, userDetails) {
         if (err) { return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.UNABLE_TO_ADD_PROJECT }); }
         if (userDetails.length > 0) {
             let projectDetails = {
+                code: req.body.project_code,
                 project_name: req.body.project_name,
                 project_topic: req.body.project_topic,
                 project_type: req.body.project_type,
@@ -56,18 +59,28 @@ controller.post('/addNewProject', validate(validateProject), async (req, res) =>
                 writers_career: req.body.writers_career,
                 writers_age: req.body.writers_age,
                 writers_location: req.body.writers_location,
+                project_file: (req.body.project_files.length > 0) ? req.body.project_files[0].file_path : '',
                 user_id: userDetails[0].user_id
             };
 
             var newProject = new projectSchema(projectDetails);
-            //checking coupon code exists
-            projectSchema.createProject(newProject, async function (err, newProject) {
+
+            projectSchema.createProject(newProject, async function (err, newProjectId) {
                 if (err) { return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.UNABLE_TO_ADD_PROJECT }); }
 
                 // Update Account Balance of User
+                let updatedAccountBalance = (userDetails[0].account_balance - req.body.project_cost).toFixed(2);
+                userSchema.updateUserAccountBalance(updatedAccountBalance, userDetails[0].user_id, function (err, userUpdate) {
+                    if (err) {
+                        // Delete Project
+                        projectSchema.deleteProject(newProjectId, async function (err, deleteProject) { });
+                        return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.UNABLE_TO_ADD_PROJECT });
+                    }
+
+                    res.status(def.API_STATUS.SUCCESS.OK).send({ response: msg.RESPONSE.PROJECT_ADDED });
+                });
 
 
-                res.status(def.API_STATUS.SUCCESS.OK).send({ response: msg.RESPONSE.PROJECT_ADDED });
             });
         } else {
             return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.UNABLE_TO_ADD_PROJECT });

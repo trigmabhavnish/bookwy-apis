@@ -203,6 +203,18 @@ userSchema.deleteVerificationToken = function (verifyToken, result) {
     });
 };
 
+userSchema.updateUserAccountBalance = function (updatedAccountBalance, userId, result) {
+    sql("UPDATE fw_user SET account_balance = ? WHERE user_id = ?", [updatedAccountBalance, userId], function (err, res) {
+        if (err) {
+            //console.log(err);              
+            result(err, null);
+        } else {
+            //console.log(res);
+            result(null, res);
+        }
+    });
+};
+
 
 
 const userJoiSchema = {

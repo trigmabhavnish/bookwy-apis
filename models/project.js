@@ -8,14 +8,14 @@ Joi.objectId = require('joi-objectid')(Joi);  // Joi Object ID
 var sql = require('../init/mysqldb');
 var _this = this;
 
-const projectSchema = function(project){
+const projectSchema = function (project) {
     this.project_name = project.project_name;
     this.project_topic = project.project_topic;
     this.project_type_id = project.project_package; // Plan Package
     this.project_dtl = project.project_details;
     this.quantity = project.quantity;
     this.word_count = project.word_count;
-    this.project_cost = project.project_cost;   
+    this.project_cost = project.project_cost;
     this.project_type = project.project_type; // new Field
     this.additional_resources = project.additional_resources; // new Field
     this.choice_of_writers = project.choice_of_writers; // new Field
@@ -27,29 +27,76 @@ const projectSchema = function(project){
 }
 
 
-projectSchema.createProject = async function (newProject, result) {      
-    
-    sql("INSERT INTO fw_project set ?", newProject, function (err, res) {            
-            if(err) {
-                //console.log("error: ", err);
-                result(err, null);
-            }else{
-                //console.log(res);
-                result(null, res.insertId);
-            }
-    });        
+projectSchema.createProject = async function (newProject, result) {
+
+    sql("INSERT INTO fw_project set ?", newProject, function (err, res) {
+        if (err) {
+            //console.log("error: ", err);
+            result(err, null);
+        } else {
+            //console.log(res);
+            result(null, res.insertId);
+        }
+    });
+};
+
+projectSchema.deleteProject = async function (newProjectId, result) {
+
+    sql("DELETE FROM fw_project WHERE id = ?", newProjectId, function (err, res) {
+        if (err) {
+            //console.log("error: ", err);
+            result(err, null);
+        } else {
+            //console.log(res);
+            result(null, res);
+        }
+    });
 };
 
 projectSchema.getProjectPackages = function (status, result) {
-    sql("Select * from fw_project_type where status = ? ", status, function (err, res) {             
-            if(err) {                  
-                //console.log(err);              
-                result(err, null);
-            }else{
-                //console.log(res);
-                result(null, res);          
-            }
-        });   
+    sql("Select * from fw_project_type where status = ? ", status, function (err, res) {
+        if (err) {
+            //console.log(err);              
+            result(err, null);
+        } else {
+            //console.log(res);
+            result(null, res);
+        }
+    });
 };
 
+const projectJoiSchema = {
+
+    project_code: Joi.string().trim().min(10).max(10).required(),
+    project_name: Joi.string().trim().min(2).max(50).required(),
+    project_topic: Joi.string().trim().min(2).max(50).required(),
+    project_type: Joi.string().trim().min(2).max(50).required(),
+    quantity: Joi.number().required(),
+    word_count: Joi.number().required(),
+    project_details: Joi.string().trim().required(),
+    additional_resources: Joi.string().trim().allow(''),
+    additional_resources: Joi.string().trim().allow(''),
+    project_package: Joi.string().trim().required(),
+    project_cost: Joi.string().trim().required(),
+    choice_of_writers: Joi.string().trim().allow(''),
+    writers_career: Joi.string().trim().allow(''),
+    writers_location: Joi.string().trim().allow(''),
+    project_files: Joi.array().items(
+        Joi.object().keys({
+            file_path: Joi.string().trim(),
+            file_name: Joi.string().trim(),
+            file_key: Joi.string().trim(),
+            file_category: Joi.string().trim(),
+        })
+    )
+
+
+}
+
+//validate create project 
+function validateProject(project) {
+    return Joi.validate(project, projectJoiSchema, { allowUnknown: true });
+}
+
 module.exports.projectSchema = projectSchema;
+module.exports.validateProject = validateProject;
