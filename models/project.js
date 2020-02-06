@@ -9,6 +9,7 @@ var sql = require('../init/mysqldb');
 var _this = this;
 
 const projectSchema = function (project) {
+    this.code = project.project_code;
     this.project_name = project.project_name;
     this.project_topic = project.project_topic;
     this.project_type_id = project.project_package; // Plan Package
@@ -16,12 +17,17 @@ const projectSchema = function (project) {
     this.quantity = project.quantity;
     this.word_count = project.word_count;
     this.project_cost = project.project_cost;
+    this.user_id = project.user_id;
+    this.project_file = project.project_file;
+    this.project_cdate = new Date();
     this.project_type = project.project_type; // new Field
     this.additional_resources = project.additional_resources; // new Field
     this.choice_of_writers = project.choice_of_writers; // new Field
     this.writers_career = project.writers_career; // new Field
-    this.writers_age = project.writers_age; // new Field
+    //this.writers_age = project.writers_age; // new Field
+    this.writers_age = '18-25';
     this.writers_location = project.writers_location; // new Field
+    
     //this.keyword_id = project.keyword_id;
     //this.keyword_id = project.project_images;
 }
