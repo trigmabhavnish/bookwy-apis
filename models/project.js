@@ -71,6 +71,23 @@ projectSchema.getProjectPackages = function (status, result) {
     });
 };
 
+projectSchema.getProjectListings = function (obj, result) {
+    let skip = obj.skip;
+    let limit = obj.limit;
+    let user_id = obj.user_id    
+    sql("SELECT COUNT(*) as totalProjects from fw_project where user_id =?", user_id, function (err, count) {
+        sql("SELECT * from fw_project where user_id=" + user_id + " LIMIT " + skip + "," + limit, function (err, res) {
+            if (err) {
+                //console.log(err);              
+                result(err, null);
+            } else {
+                //console.log(res);
+                result(null, { projects: res, count: count });
+            }
+        });
+    })
+};
+
 const projectJoiSchema = {
 
     project_code: Joi.string().trim().min(10).max(10).required(),

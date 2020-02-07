@@ -24,12 +24,11 @@ controller.post('/getSupportTickets', async (req, res) => {
         if (err) { return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.UNABLE_TO_FIND_USER }); }
         if (userDetails.length > 0) {
             supportSchema.getDirector(userDetails[0].director_id, async function (err, director) {
-                ;
 
-                // console.log('the director is',director)
+
                 supportSchema.getSupportTickets({ userId: userDetails[0].user_id, skip: skip, limit: limit }, async function (err, resp) {
                     if (err) { return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: err }); }
-                    // Update Account Balance of User
+
                     resp.tickets.forEach(element => {
                         let messages = [];
                         supportSchema.getMessages(element.id, async function (err, message) {
@@ -64,7 +63,7 @@ controller.post('/createSupportTicket', async (req, res) => {
         if (userDetails.length > 0) {
 
             supportSchema.createTicket(req.body, userDetails[0].user_id, async function (err, result) {
-                //console.log('the support is ', result)
+                
                 if (err) {
                     return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.FAILED_TO_SAVED });
                 }
@@ -101,7 +100,7 @@ controller.post('/getTicketDetails', async (req, res) => {
         if (userDetails.length > 0) {
             let responseObj = {};
             supportSchema.getDirector(userDetails[0].director_id, async function (err, director) {
-                console.log('the support is',director)
+                console.log('the support is', director)
                 supportSchema.getSupportTicket(req.body.supportId, async function (err, support) {
                     if (err) return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.UNABLE_TO_FIND_USER });
                     else {
