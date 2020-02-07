@@ -25,6 +25,10 @@ const RESPONSE = {
     DOC_UPLOAD_SUCCESSFULLY: "Upload successfully.",
     DOC_REMOVE_SUCCESSFULLY: "Remove successfully.",
     FILE_NOT_FOUND: "File Not Found.",
+    UNABLE_TO_FIND_USER:'User not found.',
+    FAILED_TO_SAVED:'Unable to create record'
+    
+
 
 };
 
