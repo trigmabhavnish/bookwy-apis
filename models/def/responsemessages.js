@@ -14,6 +14,7 @@ const RESPONSE = {
     LOGOUT_SUCCESSFULLY: "Logout Successfully.",
     UNABLE_TO_LOGOUT: "Ooops, unable to logout due to some unknown reason. please try again later.",
     UNABLE_TO_ADD_PROJECT: "Ooops, unable to add your project due to some unknown reason. please try again later.",
+    INSUFFICIENT_CREDITS: "You have insufficient credits to add new project.",
     FORGOT_PASSWORD_RESPONSE: "We have sent you a mail with password reset instructions.",
     PROJECT_ADDED: "Project added successfully.",
     FAILED_TO_SEND_EMAIL: "Email failed to send for some unknown reason. Please try again later.",
@@ -25,7 +26,8 @@ const RESPONSE = {
     DOC_REMOVE_SUCCESSFULLY: "Remove successfully.",
     FILE_NOT_FOUND: "File Not Found.",
     UNABLE_TO_FIND_USER:'User not found.',
-    FAILED_TO_SAVED:'Unable to create record'
+    FAILED_TO_SAVED:'Unable to create record',
+    FAILED_TO_UPDATE:'Unable to update record'
     
 
 

@@ -80,7 +80,7 @@ userSchema.checkEmailAlreadyExists = function (email, result) {
 };
 
 userSchema.fetchUserByAuthToken = function (authToken, result) {
-    sql("Select user_id , director_id ,profile_pic, first_name , last_name  from fw_user where auth_token = ? and status = 'Y'", authToken, function (err, res) {
+    sql("Select user_id , director_id ,account_balance,profile_pic, first_name , last_name  from fw_user where auth_token = ? and status = 'Y'", authToken, function (err, res) {
         if (err) {
             //console.log(err);              
             result(err, null);
@@ -193,6 +193,18 @@ userSchema.resetPassword = async function (password, user_id, result) {
 
 userSchema.deleteVerificationToken = function (verifyToken, result) {
     sql("UPDATE fw_user SET verification_string = '' WHERE verification_string = ?", verifyToken, function (err, res) {
+        if (err) {
+            //console.log(err);              
+            result(err, null);
+        } else {
+            //console.log(res);
+            result(null, res);
+        }
+    });
+};
+
+userSchema.updateUserAccountBalance = function (updatedAccountBalance, userId, result) {
+    sql("UPDATE fw_user SET account_balance = ? WHERE user_id = ?", [updatedAccountBalance, userId], function (err, res) {
         if (err) {
             //console.log(err);              
             result(err, null);

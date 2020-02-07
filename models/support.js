@@ -116,6 +116,21 @@ supportSchema.saveMessage = function (body, supportId,userId, result) {
 
 
 
+
+
+supportSchema.updateTicket = function (supportId, result) {
+    sql("UPDATE fw_support_master set support_status = 'solved' where id = ? ", supportId, function (err, res) {
+        if (err) {
+            //console.log(err);              
+            result(err, null);
+        } else {
+            //console.log(res);
+            result(null, res);
+        }
+    });
+}
+
+
 /**
  * Generate Random String 
  */

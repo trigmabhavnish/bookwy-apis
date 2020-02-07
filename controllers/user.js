@@ -40,6 +40,8 @@ controller.post('/signup', validate(validateUser), async (req, res) => {
         // Create New User
         else {
             userSchema.createUser(newUser, function (err, user) {
+                console.log('user', user)
+
                 if (err) { return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.UNABLE_TO_REGISTER }); }
 
                 const name = req.body.first_name + ' ' + req.body.last_name
@@ -142,7 +144,7 @@ controller.post('/forgotPassword', validate(validateEmail), async (req, res) => 
 
 controller.post('/verifyAuthToken', async (req, res) => {
 
-    //checking user email already exists
+    //checking user auth token
     userSchema.verifyAuthToken(req.body.verifyToken, async function (err, user) {
         if (err) { return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.FAILED_TO_VERIFY }); }
         if (user.length > 0) {
