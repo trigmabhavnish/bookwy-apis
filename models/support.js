@@ -14,7 +14,6 @@ supportSchema.getSupportTickets = function (obj, result) {
     let skip = obj.skip;
     let limit = obj.limit;
     let userId = obj.userId
-    console.log('the obj is ', obj)
     sql("SELECT COUNT(*) as totalItem from  fw_support_master where user_id =?", userId, function (err, count) {
         sql("SELECT * from fw_support_master where user_id=" + userId + " LIMIT " + skip + "," + limit, function (err, res) {
             if (err) {
