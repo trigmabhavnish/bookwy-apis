@@ -95,7 +95,7 @@ controller.post('/addNewProject', validate(validateProject), async (req, res) =>
 });
 
 /**
- * get Project Type
+ * get Project Listings
  */
 controller.post('/getProjectListings', async (req, res) => {
 
@@ -125,7 +125,36 @@ controller.post('/getProjectListings', async (req, res) => {
 
 });
 
+/**
+ * get Project Type
+ */
+controller.post('/getProjectDetailsById', async (req, res) => {
 
+    // Fetch UserDetails using Auth Token
+    let authToken = req.headers['x-auth-token'];
+    let skip = (parseInt(req.body.pageNumber) * parseInt(req.body.pageSize)) - parseInt(req.body.pageSize);
+    let limit = parseInt(req.body.pageSize);
+
+    //Verify User 
+    userSchema.fetchUserByAuthToken(authToken, function (err, userDetails) {
+        if (err) { return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.UNABLE_TO_FIND_USER }); }
+        if (userDetails.length > 0) {
+            //get Project Listings Details
+
+            let postData = { user_id: userDetails[0].user_id, proejct_id: req.body.projectId };
+            projectSchema.getProjectDetailsById(postData, async function (err, projectDetails) {
+                if (err) { return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.UNABLE_TO_FETCH_DETAILS }); }
+                
+                res.status(def.API_STATUS.SUCCESS.OK).send({ response: msg.RESPONSE.SUCCESS_FETCH_DETAILS, project_details: projectDetails[0] });
+
+            });
+        } else {
+            return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.UNABLE_TO_FIND_USER });
+        }
+    });
+
+
+});
 
 
 

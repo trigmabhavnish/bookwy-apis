@@ -27,7 +27,7 @@ const projectSchema = function (project) {
     //this.writers_age = project.writers_age; // new Field
     this.writers_age = '18-25';
     this.writers_location = project.writers_location; // new Field
-    
+
     //this.keyword_id = project.keyword_id;
     //this.keyword_id = project.project_images;
 }
@@ -74,7 +74,7 @@ projectSchema.getProjectPackages = function (status, result) {
 projectSchema.getProjectListings = function (obj, result) {
     let skip = obj.skip;
     let limit = obj.limit;
-    let user_id = obj.user_id    
+    let user_id = obj.user_id
     sql("SELECT COUNT(*) as totalProjects from fw_project where user_id =?", user_id, function (err, count) {
         sql("SELECT * from fw_project where user_id=" + user_id + " LIMIT " + skip + "," + limit, function (err, res) {
             if (err) {
@@ -86,6 +86,23 @@ projectSchema.getProjectListings = function (obj, result) {
             }
         });
     })
+};
+
+projectSchema.getProjectDetailsById = function (obj, result) {
+
+    let proejct_id = obj.proejct_id;
+    let user_id = obj.user_id
+
+    sql("Select * from fw_project where user_id = ? AND id = ?", [user_id, proejct_id], function (err, res) {
+        if (err) {
+            //console.log(err);              
+            result(err, null);
+        } else {
+            //console.log(res);
+            result(null, res);
+        }
+    });
+
 };
 
 const projectJoiSchema = {
