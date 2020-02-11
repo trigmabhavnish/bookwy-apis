@@ -12,6 +12,7 @@ const controller = express.Router();
 
 const {
     projectSchema,
+    projectFileSchema,
     validateProject
 } = require('../models/project');
 
@@ -34,7 +35,7 @@ controller.post('/getProjectPackages', async (req, res) => {
 });
 
 /**
- * get Project Type
+ * Add New Project
  */
 controller.post('/addNewProject', validate(validateProject), async (req, res) => {
 
@@ -68,7 +69,7 @@ controller.post('/addNewProject', validate(validateProject), async (req, res) =>
                     user_id: userDetails[0].user_id
                 };
 
-                var newProject = new projectSchema(projectDetails);
+                let newProject = new projectSchema(projectDetails);
 
                 projectSchema.createProject(newProject, async function (err, newProjectId) {
                     if (err) { return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.UNABLE_TO_ADD_PROJECT }); }
@@ -82,6 +83,33 @@ controller.post('/addNewProject', validate(validateProject), async (req, res) =>
                             return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.UNABLE_TO_ADD_PROJECT });
                         }
 
+                        // Update File Data in project files table
+                        if (req.body.project_files.length > 0) {
+                            let fileDetails = {
+                                project_id: newProjectId,
+                                user_id: userDetails[0].user_id,
+                                file_path: req.body.project_files[0].file_path,
+                                file_name: req.body.project_files[0].file_name,
+                                file_key: req.body.project_files[0].file_key,
+                                file_mimetype: req.body.project_files[0].file_mimetype,
+                                file_category: req.body.project_files[0].file_category,
+                            };
+                        } else {
+                            let fileDetails = {
+                                project_id: newProjectId,
+                                user_id: userDetails[0].user_id,
+                                file_path: '',
+                                file_name: '',
+                                file_key: '',
+                                file_mimetype: '',
+                                file_category: '',
+                            };
+                        }
+
+                        let newProjectFiles = new projectFileSchema(fileDetails);
+                        projectFileSchema.addProjectFiles(newProjectFiles, async function (err, newFileId) { });
+                        // Update File Data in project files table
+
                         res.status(def.API_STATUS.SUCCESS.OK).send({ response: msg.RESPONSE.PROJECT_ADDED });
                     });
 
@@ -90,6 +118,85 @@ controller.post('/addNewProject', validate(validateProject), async (req, res) =>
             }
         } else {
             return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.UNABLE_TO_ADD_PROJECT });
+        }
+    });
+});
+
+/**
+ * get Project Type
+ */
+controller.post('/updateProject', async (req, res) => {
+
+
+    // Fetch UserDetails using Auth Token
+    let authToken = req.headers['x-auth-token'];
+    //Verify User 
+    userSchema.fetchUserByAuthToken(authToken, function (err, userDetails) {
+        if (err) { return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.UNABLE_TO_ADD_PROJECT }); }
+        if (userDetails.length > 0) {
+
+            let lastProjectCost = req.body.lastProjectCost;
+            let updatedProjectCost = lastProjectCost - req.body.project_cost;
+
+            // check project cose is greater than available credits
+            if (Math.abs(updatedProjectCost) > Math.abs(userDetails[0].account_balance)) {
+                return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.INSUFFICIENT_CREDITS });
+            } else {
+                let updatedProjectDetails = {
+                    project_id: req.body.project_id,
+                    project_name: req.body.project_name,
+                    project_topic: req.body.project_topic,
+                    project_type: req.body.project_type,
+                    quantity: req.body.quantity,
+                    word_count: req.body.word_count,
+                    project_dtl: req.body.project_details,
+                    additional_resources: req.body.additional_resources,
+                    project_type_id: req.body.project_package,
+                    project_cost: req.body.project_cost,
+                    choice_of_writers: req.body.choice_of_writers,
+                    writers_career: req.body.writers_career,
+                    writers_age: req.body.writers_age,
+                    writers_location: req.body.writers_location,
+                    project_file: (req.body.project_files.length > 0) ? req.body.project_files[0].file_path : ''
+                };
+
+
+
+                projectSchema.updateProject(updatedProjectDetails, async function (err, updateProject) {
+                    if (err) { return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.UNABLE_TO_UPDATE_PROJECT }); }
+
+                    // Update Account Balance of User
+                    let updatedAccountBalance = ((Math.abs(userDetails[0].account_balance) + Math.abs(lastProjectCost)) - Math.abs(req.body.project_cost)).toFixed(2);
+
+                    userSchema.updateUserAccountBalance(updatedAccountBalance, userDetails[0].user_id, function (err, userUpdate) {
+                        if (err) {
+
+                            return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.UNABLE_TO_UPDATE_PROJECT });
+                        }
+
+                        // Update File Data in project files table
+                        if (req.body.project_files[0].file_path) {
+                            let fileDetails = {
+                                project_id: req.body.project_id,
+                                user_id: userDetails[0].user_id,
+                                file_path: req.body.project_files[0].file_path,
+                                file_name: req.body.project_files[0].file_name,
+                                file_key: req.body.project_files[0].file_key,
+                                file_mimetype: req.body.project_files[0].file_mimetype,
+                                file_category: req.body.project_files[0].file_category,
+                            };
+                            projectFileSchema.updateProjectFiles(fileDetails, async function (err, updatedFile) { });
+
+                        }
+                        // Update File Data in project files table
+                        res.status(def.API_STATUS.SUCCESS.OK).send({ response: msg.RESPONSE.PROJECT_UPDATED });
+                    });
+
+
+                });
+            }
+        } else {
+            return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.UNABLE_TO_UPDATE_PROJECT });
         }
     });
 });
@@ -113,7 +220,7 @@ controller.post('/getProjectListings', async (req, res) => {
             let postData = { user_id: userDetails[0].user_id, skip: skip, limit: limit };
             projectSchema.getProjectListings(postData, async function (err, resp) {
                 if (err) { return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.UNABLE_TO_FETCH_DETAILS }); }
-                
+
                 res.status(def.API_STATUS.SUCCESS.OK).send({ response: msg.RESPONSE.SUCCESS_FETCH_DETAILS, projectListings: resp.projects, totalProjects: resp.count[0].totalProjects });
 
             });
@@ -144,7 +251,7 @@ controller.post('/getProjectDetailsById', async (req, res) => {
             let postData = { user_id: userDetails[0].user_id, proejct_id: req.body.projectId };
             projectSchema.getProjectDetailsById(postData, async function (err, projectDetails) {
                 if (err) { return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.UNABLE_TO_FETCH_DETAILS }); }
-                
+
                 res.status(def.API_STATUS.SUCCESS.OK).send({ response: msg.RESPONSE.SUCCESS_FETCH_DETAILS, project_details: projectDetails[0] });
 
             });
