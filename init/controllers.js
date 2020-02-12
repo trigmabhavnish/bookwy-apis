@@ -10,6 +10,7 @@ const coupon = require('../controllers/coupon');
 const credit = require('../controllers/credit');
 const common = require('../controllers/common');
 const support = require('../controllers/support');
+const feedback = require('../controllers/feedback');
 //const googleapi = require('../init/googleapi');
 
 
@@ -36,4 +37,5 @@ module.exports = function (app) {
     app.use('/api/credit', credit);
     app.use('/api/common', common);
     app.use('/api/support',support)
+    app.use('/api/feedback',feedback);
 }    

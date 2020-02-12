@@ -27,8 +27,8 @@ const RESPONSE = {
     DOC_UPLOAD_SUCCESSFULLY: "Upload successfully.",
     DOC_REMOVE_SUCCESSFULLY: "Remove successfully.",
     FILE_NOT_FOUND: "File Not Found.",
-    UNABLE_TO_FIND_USER:'Inavlid User.',
-    FAILED_TO_SAVED:'Unable to create record'
+    UNABLE_TO_FIND_USER:'Inavlid User.',    
+    FAILED_TO_UPDATE:'Unable to update record'
     
 
 

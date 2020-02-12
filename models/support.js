@@ -13,7 +13,7 @@ const supportSchema = {};
 supportSchema.getSupportTickets = function (obj, result) {
     let skip = obj.skip;
     let limit = obj.limit;
-    let userId = obj.userId    
+    let userId = obj.userId
     sql("SELECT COUNT(*) as totalItem from  fw_support_master where user_id =?", userId, function (err, count) {
         sql("SELECT * from fw_support_master where user_id=" + userId + " LIMIT " + skip + "," + limit, function (err, res) {
             if (err) {
@@ -40,7 +40,7 @@ supportSchema.getMessages = function (supportId, result) {
 };
 
 supportSchema.getDirector = function (directorId, result) {
-    console.log('ddd', directorId);
+    // console.log('ddd', directorId);
     sql("SELECT * from fw_project_director where id = ?", directorId, function (err, res) {
         if (err) {
             //console.log(err);              
@@ -113,6 +113,21 @@ supportSchema.saveMessage = function (body, supportId,userId, result) {
     });
 }
 
+
+
+
+
+supportSchema.updateTicket = function (supportId, result) {
+    sql("UPDATE fw_support_master set support_status = 'solved' where id = ? ", supportId, function (err, res) {
+        if (err) {
+            //console.log(err);              
+            result(err, null);
+        } else {
+            //console.log(res);
+            result(null, res);
+        }
+    });
+}
 
 
 /**
