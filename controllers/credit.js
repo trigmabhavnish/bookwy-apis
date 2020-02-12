@@ -54,7 +54,16 @@ controller.post('/onTransactionComplete', validate(validateTransactionData), asy
             creditSchema.addCredits(newCredits, async function (err, newCredit) {
                 if (err) { return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.UNABLE_TO_ADD_CREDITS }); }
 
-                res.status(def.API_STATUS.SUCCESS.OK).send({ response: msg.RESPONSE.CREDITS_ADDED });
+                // Update Account Balance in User Profile
+                userSchema.updateUserAccountBalance(req.body.qty, userDetails[0].user_id, function (err, userUpdate) {
+                    if (err) {                        
+                        return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.UNABLE_TO_ADD_CREDITS });
+                    }
+
+                    res.status(def.API_STATUS.SUCCESS.OK).send({ response: msg.RESPONSE.CREDITS_ADDED });
+                });
+
+                
             });
         } else {
             if (err) { return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.UNABLE_TO_ADD_CREDITS }); }

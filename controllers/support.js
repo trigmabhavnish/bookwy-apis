@@ -24,29 +24,29 @@ controller.post('/getSupportTickets', async (req, res) => {
         if (err) { return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.UNABLE_TO_FIND_USER }); }
         if (userDetails.length > 0) {
             supportSchema.getDirector(userDetails[0].director_id, async function (err, director) {
-                
 
-                // console.log('the director is',director)
+
+
                 supportSchema.getSupportTickets({ userId: userDetails[0].user_id, skip: skip, limit: limit }, async function (err, resp) {
                     if (err) { return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: err }); }
                     // Update Account Balance of User
-                    resp.tickets.forEach(  (element) => {
+                    resp.tickets.forEach((element) => {
                         let messages = [];
-                      supportSchema.getMessages(element.id, async function (err, message) {
+                        supportSchema.getMessages(element.id, async function (err, message) {
                             messages.push(message[0]);
                             messages.push(message[message.length - 1]);
                             element['messages'] = messages;
                             element['director'] = director;
-                           
+
 
                         })
-                        
+
 
                     });
-                   setTimeout(()=>{
-                       res.status(def.API_STATUS.SUCCESS.OK).send({ totalItems: resp.count[0].totalItem, tickets: resp.tickets, user: userDetails[0] });
+                    setTimeout(() => {
+                        res.status(def.API_STATUS.SUCCESS.OK).send({ totalItems: resp.count[0].totalItem, tickets: resp.tickets, user: userDetails[0] });
 
-                   },1000)
+                    }, 1000)
 
                 });
             })
@@ -71,14 +71,14 @@ controller.post('/createSupportTicket', async (req, res) => {
                 if (err) {
                     return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.FAILED_TO_SAVED });
                 }
-                {
-                    supportSchema.saveMessage(req.body, result.insertId, userDetails[0].user_id, async function (err, message) {
-                        if (err) { return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.FAILED_TO_SAVED }); }
-                        else {
-                            res.status(def.API_STATUS.SUCCESS.OK).send(true);
-                        }
-                    })
-                }
+
+                supportSchema.saveMessage(req.body, result.insertId, userDetails[0].user_id, async function (err, message) {
+                    if (err) { return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.FAILED_TO_SAVED }); }
+                    else {
+                        res.status(def.API_STATUS.SUCCESS.OK).send(true);
+                    }
+                })
+
             })
 
         }
@@ -102,13 +102,13 @@ controller.post('/saveMessage', async (req, res) => {
     userSchema.fetchUserByAuthToken(authToken, async function (err, userDetails) {
         if (userDetails.length > 0) {
 
-                    supportSchema.saveMessage(req.body, req.body.support_id, userDetails[0].user_id, async function (err, message) {
-                        if (err) { return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.FAILED_TO_SAVED }); }
-                        else {
-                            res.status(def.API_STATUS.SUCCESS.OK).send(message);
-                        }
-                    })
-        
+            supportSchema.saveMessage(req.body, req.body.support_id, userDetails[0].user_id, async function (err, message) {
+                if (err) { return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.FAILED_TO_SAVED }); }
+                else {
+                    res.status(def.API_STATUS.SUCCESS.OK).send(message);
+                }
+            })
+
         }
         else {
             return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: err });
@@ -121,18 +121,18 @@ controller.post('/saveMessage', async (req, res) => {
  * This is for update ticket to solved form user end
  */
 controller.post('/updateTicket', async (req, res) => {
-  
 
 
-        supportSchema.updateTicket(req.body.support_id, async function (err, message) {
-            if (err) { return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.FAILED_TO_UPDATE }); }
-            else {
-                res.status(def.API_STATUS.SUCCESS.OK).send(message);
-            }
-        })
 
-    
-    
+    supportSchema.updateTicket(req.body.support_id, async function (err, message) {
+        if (err) { return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.FAILED_TO_UPDATE }); }
+        else {
+            res.status(def.API_STATUS.SUCCESS.OK).send(message);
+        }
+    })
+
+
+
 })
 
 

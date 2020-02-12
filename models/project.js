@@ -27,10 +27,12 @@ const projectSchema = function (project) {
     //this.writers_age = project.writers_age; // new Field
     this.writers_age = '18-25';
     this.writers_location = project.writers_location; // new Field
-    
+
     //this.keyword_id = project.keyword_id;
     //this.keyword_id = project.project_images;
 }
+
+
 
 
 projectSchema.createProject = async function (newProject, result) {
@@ -61,6 +63,95 @@ projectSchema.deleteProject = async function (newProjectId, result) {
 
 projectSchema.getProjectPackages = function (status, result) {
     sql("Select * from fw_project_type where status = ? ", status, function (err, res) {
+        if (err) {
+            //console.log(err);              
+            result(err, null);
+        } else {
+            //console.log(res);
+            result(null, res);
+        }
+    });
+};
+
+projectSchema.getProjectListings = function (obj, result) {
+    let skip = obj.skip;
+    let limit = obj.limit;
+    let user_id = obj.user_id
+    sql("SELECT COUNT(*) as totalProjects from fw_project where user_id =?", user_id, function (err, count) {
+        sql("SELECT * from fw_project where user_id=" + user_id + " LIMIT " + skip + "," + limit, function (err, res) {
+            if (err) {
+                //console.log(err);              
+                result(err, null);
+            } else {
+                //console.log(res);
+                result(null, { projects: res, count: count });
+            }
+        });
+    })
+};
+
+projectSchema.getProjectDetailsById = function (obj, result) {
+
+    let proejct_id = obj.proejct_id;
+    let user_id = obj.user_id
+
+    sql("Select fp.*, fpf.file_name, fpf.file_category, fpf.file_path, fpf.file_key, fpf.file_mimetype from fw_project as fp INNER JOIN fw_project_files as fpf ON fp.id = fpf.project_id where fp.user_id = ? AND fp.id = ?", [user_id, proejct_id], function (err, res) {
+        if (err) {
+            //console.log(err);              
+            result(err, null);
+        } else {
+            //console.log(res);
+            result(null, res);
+        }
+    });
+
+};
+
+projectSchema.updateProject = function (updatedProjectDetails, result) {
+
+    let updateQuery = `UPDATE fw_project SET project_name = '${updatedProjectDetails.project_name}', project_topic = '${updatedProjectDetails.project_topic}', project_type = '${updatedProjectDetails.project_type}', quantity = '${updatedProjectDetails.quantity}', word_count = '${updatedProjectDetails.word_count}', project_dtl = '${updatedProjectDetails.project_dtl}', additional_resources = '${updatedProjectDetails.additional_resources}', project_type_id = '${updatedProjectDetails.project_type_id}', project_cost = '${updatedProjectDetails.project_cost}', choice_of_writers = '${updatedProjectDetails.choice_of_writers}', writers_career = '${updatedProjectDetails.writers_career}', writers_age = '${updatedProjectDetails.writers_age}', writers_location = '${updatedProjectDetails.writers_location}', project_file = '${updatedProjectDetails.project_file}' WHERE id='${updatedProjectDetails.project_id}'`;
+
+    sql(updateQuery, function (err, res) {
+        if (err) {
+            //console.log(err);              
+            result(err, null);
+        } else {
+            //console.log(res);
+            result(null, res);
+        }
+    });
+};
+
+
+// Project Files
+const projectFileSchema = function (file) {
+    this.user_id = file.user_id;
+    this.project_id = file.project_id;
+    this.file_path = file.file_path;
+    this.file_name = file.file_name;
+    this.file_key = file.file_key;
+    this.file_mimetype = file.file_mimetype;
+    this.file_category = file.file_category;
+}
+
+projectFileSchema.addProjectFiles = async function (newProjectFile, result) {
+
+    sql("INSERT INTO fw_project_files set ?", newProjectFile, function (err, res) {
+        if (err) {
+            //console.log("error: ", err);
+            result(err, null);
+        } else {
+            //console.log(res);
+            result(null, res.insertId);
+        }
+    });
+};
+
+projectFileSchema.updateProjectFiles = function (updatedProjectFileDetails, result) {
+
+    let updateQuery = `UPDATE fw_project_files SET file_path = '${updatedProjectFileDetails.file_name}', file_name = '${updatedProjectFileDetails.file_name}', file_key = '${updatedProjectFileDetails.file_key}', file_mimetype = '${updatedProjectFileDetails.file_mimetype}' WHERE project_id='${updatedProjectFileDetails.project_id}'`;
+
+    sql(updateQuery, function (err, res) {
         if (err) {
             //console.log(err);              
             result(err, null);
@@ -105,4 +196,5 @@ function validateProject(project) {
 }
 
 module.exports.projectSchema = projectSchema;
+module.exports.projectFileSchema = projectFileSchema;
 module.exports.validateProject = validateProject;

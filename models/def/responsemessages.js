@@ -14,9 +14,11 @@ const RESPONSE = {
     LOGOUT_SUCCESSFULLY: "Logout Successfully.",
     UNABLE_TO_LOGOUT: "Ooops, unable to logout due to some unknown reason. please try again later.",
     UNABLE_TO_ADD_PROJECT: "Ooops, unable to add your project due to some unknown reason. please try again later.",
-    INSUFFICIENT_CREDITS: "You have insufficient credits to add new project.",
+    UNABLE_TO_UPDATE_PROJECT: "Ooops, unable to update your project due to some unknown reason. please try again later.",
+    INSUFFICIENT_CREDITS: "You have insufficient credits.",
     FORGOT_PASSWORD_RESPONSE: "We have sent you a mail with password reset instructions.",
     PROJECT_ADDED: "Project added successfully.",
+    PROJECT_UPDATED: "Project updated successfully.",
     FAILED_TO_SEND_EMAIL: "Email failed to send for some unknown reason. Please try again later.",
     FAILED_TO_VERIFY: "Token expired or Failed to verify your account. Please try again.",
     PASSWORD_UPDATED: "Password updated successfully.",
@@ -25,8 +27,7 @@ const RESPONSE = {
     DOC_UPLOAD_SUCCESSFULLY: "Upload successfully.",
     DOC_REMOVE_SUCCESSFULLY: "Remove successfully.",
     FILE_NOT_FOUND: "File Not Found.",
-    UNABLE_TO_FIND_USER:'User not found.',
-    FAILED_TO_SAVED:'Unable to create record',
+    UNABLE_TO_FIND_USER:'Inavlid User.',    
     FAILED_TO_UPDATE:'Unable to update record'
     
 

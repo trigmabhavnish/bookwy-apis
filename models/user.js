@@ -80,7 +80,7 @@ userSchema.checkEmailAlreadyExists = function (email, result) {
 };
 
 userSchema.fetchUserByAuthToken = function (authToken, result) {
-    sql("Select user_id , director_id ,account_balance,profile_pic, first_name , last_name  from fw_user where auth_token = ? and status = 'Y'", authToken, function (err, res) {
+    sql("Select user_id , account_balance, director_id ,profile_pic, first_name , last_name  from fw_user where auth_token = ? and status = 'Y'", authToken, function (err, res) {    
         if (err) {
             //console.log(err);              
             result(err, null);
