@@ -41,6 +41,27 @@ creditSchema.addCredits = async function (newCredits, result) {
     });        
 };
 
+
+
+creditSchema.getListing = async   function (obj, result) {
+        let skip = obj.skip;
+        let limit = obj.limit;
+        let userId = obj.userId
+        sql("SELECT COUNT(*) as totalItem from  fw_payment where user_id =?", userId, function (err, count) {
+            sql("SELECT * from fw_payment where user_id=" + userId + " LIMIT " + skip + "," + limit, function (err, res) {
+                if (err) {
+                    //console.log(err);              
+                    result(err, null);
+                } else {
+                    //console.log(res);
+                    result(null, { transactions: res, count: count });
+                }
+            });
+        })
+            
+};
+
+
 const creditJoiSchema = {
     code: Joi.string().trim().min(2).max(50).required(),
     payment_method: Joi.string().valid('paypal', 'skrill').required(),       

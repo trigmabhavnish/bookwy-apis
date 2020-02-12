@@ -40,7 +40,7 @@ supportSchema.getMessages = function (supportId, result) {
 };
 
 supportSchema.getDirector = function (directorId, result) {
-    console.log('ddd', directorId);
+    // console.log('ddd', directorId);
     sql("SELECT * from fw_project_director where id = ?", directorId, function (err, res) {
         if (err) {
             //console.log(err);              
