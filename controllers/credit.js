@@ -67,22 +67,23 @@ controller.post('/onTransactionComplete', validate(validateTransactionData), asy
 
 
 
-controller.post('/getTransactionListing', async (req, res) => {
+controller.post('/transactionListing', async (req, res) => {
 
     //console.log(req.body);
     // Fetch UserDetails using Auth Token
-    let authToken = req.body.auth_token;
+    let authToken = req.headers['x-auth-token'];
     let skip = (parseInt(req.body.pageNumber) * parseInt(req.body.pageSize)) - parseInt(req.body.pageSize);
     let limit = parseInt(req.body.pageSize);
     //Verify User 
+ 
     userSchema.fetchUserByAuthToken(authToken, function (err, userDetails) {
         if (err) { return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.UNABLE_TO_ADD_CREDITS }); }
-
+      
         if (userDetails.length > 0) {
             creditSchema.getListing({userId:userDetails[0].user_id,skip:skip,limit:limit}, async function (err, response) {
                 if (err) { return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.UNABLE_TO_ADD_CREDITS }); }
 
-                res.status(def.API_STATUS.SUCCESS.OK).send({ reponse:response.transactions,totalItems : response.count });
+                res.status(def.API_STATUS.SUCCESS.OK).send({ transactions:response.transactions,totalItems : response.count[0].totalItem });
             });
         } else {
             if (err) { return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.UNABLE_TO_ADD_CREDITS }); }
