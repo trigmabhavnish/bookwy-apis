@@ -29,6 +29,7 @@ const singleUpload = upload.single('file')
 controller.post('/imageUploadtoBucket', function (req, res) {
 	singleUpload(req, res, function (err) {
 		if (err) {
+			//console.log('error', err);
 			return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.FAILED_TO_UPLOAD_DOC });
 		}
 
