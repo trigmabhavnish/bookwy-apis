@@ -303,7 +303,7 @@ controller.post('/getProjectListings', async (req, res) => {
 controller.post('/getProjectDetailsById', async (req, res) => {
 
     // Fetch UserDetails using Auth Token
-    let authToken = req.headers['x-auth-token'];    
+    let authToken = req.headers['x-auth-token'];
 
     //Verify User 
     userSchema.fetchUserByAuthToken(authToken, function (err, userDetails) {
@@ -311,16 +311,22 @@ controller.post('/getProjectDetailsById', async (req, res) => {
         if (userDetails.length > 0) {
             //get Project Listings Details
 
-            let postData = { user_id: userDetails[0].user_id, proejct_id: req.body.projectId };
+            let postData = { user_id: userDetails[0].user_id, project_id: req.body.projectId };
+            //console.log(postData);
             projectSchema.getProjectDetailsById(postData, async function (err, projectDetails) {
                 if (err) { return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.UNABLE_TO_FETCH_DETAILS }); }
 
                 let projectStatusArray = [];
-                projectStatusSchema.getProjectStatusById(req.body.projectId, async function (err, projectStatus) {
+                await projectStatusSchema.getProjectStatusById(req.body.projectId, async function (err, projectStatus) {
+
                     projectStatusArray = projectStatus;
+
+                    // Send Response
+                    res.status(def.API_STATUS.SUCCESS.OK).send({ response: msg.RESPONSE.SUCCESS_FETCH_DETAILS, project_details: projectDetails[0], project_status: projectStatusArray });
+
                 });
 
-                res.status(def.API_STATUS.SUCCESS.OK).send({ response: msg.RESPONSE.SUCCESS_FETCH_DETAILS, project_details: projectDetails[0], project_status:projectStatusArray });
+
 
             });
         } else {
