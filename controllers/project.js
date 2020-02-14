@@ -217,7 +217,7 @@ controller.post('/updateProject', async (req, res) => {
 
 
 /**
- * get Project Type
+ * Cancel Project
  */
 controller.post('/cancelProject', async (req, res) => {
 
@@ -262,6 +262,64 @@ controller.post('/cancelProject', async (req, res) => {
 
         } else {
             return res.status(def.API_STATUS.SERVER_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.UNABLE_TO_CANCEL_PROJECT });
+        }
+    });
+});
+
+
+/**
+ * Update Project Status
+ */
+controller.post('/updateProjectStatus', async (req, res) => {
+
+
+    // Fetch UserDetails using Auth Token
+    let authToken = req.headers['x-auth-token'];
+    //Verify User 
+    userSchema.fetchUserByAuthToken(authToken, function (err, userDetails) {
+        if (err) { return res.status(def.API_STATUS.SERVER_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.UNABLE_TO_UPDATE_PROJECT_STATUS }); }
+        if (userDetails.length > 0) {
+
+            projectSchema.updateProjectStatus(req.body.project_id, req.body.project_status, async function (err, updateProject) {
+                if (err) { return res.status(def.API_STATUS.SERVER_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.UNABLE_TO_UPDATE_PROJECT_STATUS }); }
+
+
+                // Update Project Status in project status table
+                let statusDescription = "";
+                if(req.body.project_status == "Pause"){
+                    statusDescription = "Project Paused."
+                }
+                if(req.body.project_status == "Resume"){
+                    statusDescription = "Project Resumed."
+                }
+                if(req.body.project_status == "Cancel"){
+                    statusDescription = "Project Cancelled."
+                }
+                if(req.body.project_status == "Complete"){
+                    statusDescription = "Project Completed."
+                }
+                if(req.body.project_status == "Revised"){
+                    statusDescription = "Project Revised."
+                }
+
+                let projectStatusDetails = {
+                    project_id: req.body.project_id,
+                    user_id: userDetails[0].user_id,
+                    project_status: req.body.project_status,
+                    status_description: statusDescription
+                };
+
+                let newProjectStatus = new projectStatusSchema(projectStatusDetails);
+                projectStatusSchema.addProjectStatus(projectStatusDetails, async function (err, newStatusId) { });
+                // Update Project Status in project status table
+
+                res.status(def.API_STATUS.SUCCESS.OK).send({ response: msg.RESPONSE.PROJECT_STATUS_UPDATED });
+
+
+            });
+
+        } else {
+            return res.status(def.API_STATUS.SERVER_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.UNABLE_TO_UPDATE_PROJECT_STATUS });
         }
     });
 });

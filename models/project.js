@@ -138,7 +138,36 @@ projectSchema.cancelProject = function (project_id, result) {
 };
 
 
+projectSchema.updateProjectStatus = function (project_id, project_status, result) {
 
+    let updateQuery = `UPDATE fw_project SET project_status = '${project_status}' WHERE id='${project_id}'`;
+
+    sql(updateQuery, function (err, res) {
+        if (err) {
+            //console.log(err);              
+            result(err, null);
+        } else {
+            //console.log(res);
+            result(null, res);
+        }
+    });
+};
+
+
+projectSchema.getDashboardProjects = function (user_id, result) {
+
+
+    sql("SELECT fp.*, (SELECT COUNT(*) from fw_project where user_id = " + user_id + " AND project_status = 'New') as np, (SELECT COUNT(*) from fw_project where user_id = " + user_id + " AND project_status IN ('Revised', 'Pending')) as ap, (SELECT COUNT(*) from fw_project where user_id = " + user_id + " AND project_status = 'Complete') as cp from fw_project as fp where user_id=" + user_id + " ORDER BY id DESC LIMIT 1", function (err, res) {
+        if (err) {
+            //console.log(err);              
+            result(err, null);
+        } else {
+            //console.log(res);
+            result(null, res);
+        }
+    });
+
+};
 
 // Project Files
 const projectFileSchema = function (file) {
@@ -186,7 +215,7 @@ const projectStatusSchema = function (status) {
     this.user_id = status.user_id;
     this.project_id = status.project_id;
     this.project_status = status.project_status;
-    this.status_date = new Date();    
+    this.status_date = new Date();
 }
 
 projectStatusSchema.addProjectStatus = async function (newProjectStatus, result) {
@@ -203,7 +232,7 @@ projectStatusSchema.addProjectStatus = async function (newProjectStatus, result)
 };
 
 projectStatusSchema.getProjectStatusById = function (projectId, result) {
-    
+
     sql("Select * from fw_project_status where project_id = ? ", projectId, function (err, res) {
         if (err) {
             //console.log(err);              
