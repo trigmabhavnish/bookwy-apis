@@ -217,6 +217,78 @@ controller.post('/logout', async (req, res) => {
     });
 });
 
+
+/**
+ * This is for creating ticket form user end
+ */
+controller.get('/getProfile', async (req, res) => {
+    var authToken = req.headers['x-auth-token'];
+
+    //Verify User 
+    userSchema.fetchUserByAuthToken(authToken, async function (err, userDetails) {
+
+        if (userDetails.length > 0) {
+
+            userSchema.fetchUserProfileById(userDetails[0].user_id, async function (err, profile) {
+                if (err) {
+                    return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.FAILED_TO_SAVED });
+                }
+
+                userSchema.fetchUserSettingById(userDetails[0].user_id, async function (err, settings) {
+                    if (err) { return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.FAILED_TO_SAVED }); }
+                    else {
+                        res.status(def.API_STATUS.SUCCESS.OK).send({profile:profile,settings:settings});
+                    }
+                })
+
+            })
+
+        }
+        else {
+            return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: err });
+        }
+
+    })
+})
+
+
+/**
+ * This is for creating ticket form user end
+ */
+controller.post('/updateProfile', async (req, res) => {
+    var authToken = req.headers['x-auth-token'];
+
+    //Verify User 
+    userSchema.fetchUserByAuthToken(authToken, async function (err, userDetails) {
+
+        if (userDetails.length > 0) {
+
+            userSchema.updateUserProfile(req.body,userDetails[0].user_id, async function (err, profile) {
+                if (err) {
+                    return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.FAILED_TO_SAVED });
+                }
+
+               
+                        res.status(def.API_STATUS.SUCCESS.OK).send({profile:profile});
+              
+
+            })
+
+        }
+        else {
+            return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: err });
+        }
+
+    })
+})
+
+
+
+
+
+
+
+
 //function to generate jwt token
 function generateAuthToken(user) {
     // PRIVATE and PUBLIC key    

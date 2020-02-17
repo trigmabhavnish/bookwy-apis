@@ -80,7 +80,7 @@ userSchema.checkEmailAlreadyExists = function (email, result) {
 };
 
 userSchema.fetchUserByAuthToken = function (authToken, result) {
-    sql("Select user_id , account_balance, director_id ,profile_pic, first_name , last_name  from fw_user where auth_token = ? and status = 'Y'", authToken, function (err, res) {    
+    sql("Select user_id , account_balance, director_id ,profile_pic, first_name , last_name  from fw_user where auth_token = ? and status = 'Y'", authToken, function (err, res) {
         if (err) {
             //console.log(err);              
             result(err, null);
@@ -93,6 +93,71 @@ userSchema.fetchUserByAuthToken = function (authToken, result) {
 
 userSchema.fetchUserById = function (user_id, result) {
     sql("Select email, first_name, last_name from fw_user where user_id = ? and status = 'Y'", user_id, function (err, res) {
+        if (err) {
+            //console.log(err);              
+            result(err, null);
+        } else {
+            //console.log(res);
+            result(null, res);
+        }
+    });
+};
+
+
+userSchema.fetchUserProfileById = function (user_id, result) {
+    sql("Select email, profile_pic,user_id,user_name, first_name, last_name, email,reg_date,last_login,company_name,profession,website,country,dob,sp_member_from,account_type from fw_user where user_id = ? and status = 'Y'", user_id, function (err, res) {
+        if (err) {
+            //console.log(err);              
+            result(err, null);
+        } else {
+            //console.log(res);
+            result(null, res);
+        }
+    });
+};
+
+
+userSchema.updateUserProfile = function (body, user_id, result) {
+            let setting = body.settings;
+            let notification = body.notification;
+            let updateProfileQuery = `UPDATE fw_user SET 
+                                profile_pic = '${body.profile_pic}',
+                                company_name = '${body.company_name}',
+                                first_name = '${body.first_name}',
+                                last_name = '${body.last_name}',
+                                user_name = '${body.user_name}',
+                                profession = '${body.profession}',
+                                email = '${body.email}',
+                                website = '${body.website}',
+                                country = ${body.country},
+                                dob = ${body.dob} where user_id= ${user_id}
+                                `
+    let settingQuery = `UPDATE fw_user_setting_notification SET gender_winter = '${setting.gender_winter}',country_winter = '${setting.country_winter}',age_brack_writers = '${setting.age_brack_writers}',specialization = '${setting.specialization}',hide_profile = '${body.hide_profile}',new_project = '${body.new_project}',complet_project = '${body.complet_project}',imp_update_project = '${body.imp_update_project}',new_payment = '${body.new_payment}',freebie = '${body.freebie}',new_message = '${body.new_message}',my_profile = '${body.my_profile}',other_update = '${body.other_update}' where user_id = ${user_id}
+                        `
+
+                        console.log('the sql ',settingQuery)
+                    sql(updateProfileQuery, function (err, res) {
+                        if (err) {
+                            //console.log(err);              
+                            result(err, null);
+                        } else {
+                            sql(settingQuery, function (err, res) {
+                                if (err) {
+                                    //console.log(err);              
+                                    result(err, null);
+                                } else {
+                                    //console.log(res);
+                                    result(null, res);
+                                }
+                            })
+
+                        }
+                    });
+};
+
+
+userSchema.fetchUserSettingById = function (user_id, result) {
+    sql("Select * from fw_user_setting_notification where user_id = ?", user_id, function (err, res) {
         if (err) {
             //console.log(err);              
             result(err, null);
