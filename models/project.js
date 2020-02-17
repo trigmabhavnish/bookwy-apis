@@ -154,19 +154,20 @@ projectSchema.updateProjectStatus = function (project_id, project_status, result
 };
 
 
-projectSchema.getDashboardProjects = function (user_id, result) {
-
-
-    sql("SELECT fp.*, (SELECT COUNT(*) from fw_project where user_id = " + user_id + " AND project_status = 'New') as np, (SELECT COUNT(*) from fw_project where user_id = " + user_id + " AND project_status IN ('Revised', 'Pending')) as ap, (SELECT COUNT(*) from fw_project where user_id = " + user_id + " AND project_status = 'Complete') as cp from fw_project as fp where user_id=" + user_id + " ORDER BY id DESC LIMIT 1", function (err, res) {
-        if (err) {
-            //console.log(err);              
-            result(err, null);
-        } else {
-            //console.log(res);
-            result(null, res);
-        }
-    });
-
+projectSchema.getDashboardContent = function (user_id, result) {
+    sql("SELECT (SELECT COUNT(*) as np from fw_project where project_status = 'New' and user_id=" + user_id + ") as np, (SELECT COUNT(*) as ap from fw_project where project_status IN ('Revised', 'Pending') and user_id=" + user_id + ") as ap, (SELECT COUNT(*) as cp from fw_project where project_status = 'Complete' and user_id=" + user_id + ") as cp FROM fw_project WHERE user_id = " + user_id, function (err, projectCount) {
+        sql("SELECT * from fw_project where user_id=" + user_id + " ORDER BY id DESC LIMIT 1", function (err, latestProject) {
+            sql("SELECT * from fw_support_master where user_id=" + user_id + " ORDER BY id DESC LIMIT 1", function (err, latestSupport) {
+                if (err) {
+                    //console.log(err);              
+                    result(err, null);
+                } else {
+                    //console.log(res);
+                    result(null, { latestProject: latestProject, latestSupport: latestSupport, projectCount: projectCount });
+                }
+            });
+        });
+    })
 };
 
 // Project Files
