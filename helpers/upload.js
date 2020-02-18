@@ -5,7 +5,6 @@ const config = require('config');
 var hummus = require('hummus');
 var isBase64 = require('is-base64');
 
-//console.log(config.get('aws.accessKey')+':'+config.get('aws.secretKey')+':'+config.get('aws.region')+':'+config.get('aws.bucket'))
 aws.config.update({
     // Your SECRET ACCESS KEY from AWS should go here,
     // Never share it!
@@ -21,8 +20,6 @@ aws.config.update({
 const s3 = new aws.S3();
 
 const fileFilter = (req, file, cb) => {
-  //console.log('req.body',req.body);
-  console.log(file.mimetype);
   if(file.mimetype === 'application/pdf'){
 	  let pdfBase64String = req.body.base64StringFile;
 	if(isBase64(pdfBase64String)){

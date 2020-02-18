@@ -40,7 +40,6 @@ controller.post('/signup', validate(validateUser), async (req, res) => {
         // Create New User
         else {
             userSchema.createUser(newUser, function (err, user) {
-                console.log('user', user)
 
                 if (err) { return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.UNABLE_TO_REGISTER }); }
 
@@ -117,7 +116,6 @@ controller.post('/forgotPassword', validate(validateEmail), async (req, res) => 
 
                 const name = user[0].first_name + ' ' + user[0].last_name
                 const forgotPasswordLink = config.get('webEndPointStaging') + '/user/reset-password?token=' + verifyToken;
-                //console.log(forgotPasswordLink);
                 const mailBody = {
                     to: req.body.email,
                     from: config.get('fromEmail'),
@@ -178,7 +176,6 @@ controller.post('/resetPassword', validate(validateResetPassword), async (req, r
 
                 const name = user[0].first_name + ' ' + user[0].last_name
                 
-                //console.log(forgotPasswordLink);
                 const mailBody = {
                     to: user[0].email,
                     from: config.get('fromEmail'),
@@ -205,14 +202,12 @@ controller.post('/resetPassword', validate(validateResetPassword), async (req, r
 
 controller.post('/logout', async (req, res) => {
 
-    //console.log(req.body);
     // Fetch UserDetails using Auth Token
     var authToken = req.body.auth_token;
 
     //checking user email already exists
     userSchema.logout(authToken, function (err, logoutDetails) {
         if (err) { return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.UNABLE_TO_LOGOUT }); }
-        //console.log(logoutDetails);
         res.status(def.API_STATUS.SUCCESS.OK).send({ response: msg.RESPONSE.LOGOUT_SUCCESSFULLY });
     });
 });
@@ -252,8 +247,32 @@ controller.get('/getProfile', async (req, res) => {
 })
 
 
+
 /**
- * This is for creating ticket form user end
+ * This is for updating profile image
+ */
+
+controller.post('/updateProfilePic',async (req,res)=>{
+    var authToken = req.headers['x-auth-token'];
+
+    //Verify User 
+    userSchema.fetchUserByAuthToken(authToken, async function (err, userDetails) {
+
+        if (userDetails.length > 0) {
+
+            userSchema.updateProfileImage(userDetails[0].user_id,req.body,function(err, profile){
+             if(err)
+             return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: err });
+             else
+             res.status(def.API_STATUS.SUCCESS.OK).send({profile:profile});
+
+            })
+        }
+    })
+})
+
+/**
+ * This is for Updating Profile and settings form user end
  */
 controller.post('/updateProfile', async (req, res) => {
     var authToken = req.headers['x-auth-token'];

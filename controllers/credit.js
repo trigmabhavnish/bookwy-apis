@@ -40,7 +40,6 @@ controller.post('/checkCouponCodeExist', async (req, res) => {
 
 controller.post('/onTransactionComplete', validate(validateTransactionData), async (req, res) => {
 
-    //console.log(req.body);
     // Fetch UserDetails using Auth Token
     var authToken = req.body.auth_token;
 
@@ -78,7 +77,6 @@ controller.post('/onTransactionComplete', validate(validateTransactionData), asy
 
 controller.post('/transactionListing', async (req, res) => {
 
-    //console.log(req.body);
     // Fetch UserDetails using Auth Token
     let authToken = req.headers['x-auth-token'];
     let skip = (parseInt(req.body.pageNumber) * parseInt(req.body.pageSize)) - parseInt(req.body.pageSize);
