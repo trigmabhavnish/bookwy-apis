@@ -21,6 +21,10 @@ const {
     userSchema
 } = require('../models/user');
 
+const {
+    sendMail
+} = require('../helpers/emailService');
+
 /**
  * get Project Type
  */
@@ -123,6 +127,22 @@ controller.post('/addNewProject', validate(validateProject), async (req, res) =>
                         let newProjectStatus = new projectStatusSchema(projectStatusDetails);
                         projectStatusSchema.addProjectStatus(projectStatusDetails, async function (err, newStatusId) { });
                         // Update Project Status in project status table
+
+                        // Send Email to User
+                        const name = userDetails[0].first_name + ' ' + userDetails[0].last_name
+                        const mailBody = {
+                            to: userDetails[0].email,
+                            from: config.get('fromEmail'),
+                            subject: "Project Created",
+                            template_id: config.get('email_templates.project_updates_template'),
+                            dynamic_template_data: {
+                                name: name,
+                                project_name: req.body.project_name,
+                                project_updates: 'Your project has been successfully created'
+                            }
+                        }
+                        sendMail(mailBody)
+                        // Send Email to User
 
                         res.status(def.API_STATUS.SUCCESS.OK).send({ response: msg.RESPONSE.PROJECT_ADDED });
                     });
@@ -252,6 +272,22 @@ controller.post('/cancelProject', async (req, res) => {
                     let newProjectStatus = new projectStatusSchema(projectStatusDetails);
                     projectStatusSchema.addProjectStatus(projectStatusDetails, async function (err, newStatusId) { });
                     // Update Project Status in project status table
+
+                    // Send Email to User
+                    const name = userDetails[0].first_name + ' ' + userDetails[0].last_name
+                    const mailBody = {
+                        to: userDetails[0].email,
+                        from: config.get('fromEmail'),
+                        subject: "Project Cancelled",
+                        template_id: config.get('email_templates.project_updates_template'),
+                        dynamic_template_data: {
+                            name: name,
+                            project_name: updateProject[0].project_name,
+                            project_updates: 'Your project has been successfully cancelled'
+                        }
+                    }
+                    sendMail(mailBody)
+                    // Send Email to User
 
                     // Update File Data in project files table
                     res.status(def.API_STATUS.SUCCESS.OK).send({ response: msg.RESPONSE.PROJECT_CANCELLED });

@@ -78,7 +78,7 @@ projectSchema.getProjectListings = function (obj, result) {
     let limit = obj.limit;
     let user_id = obj.user_id
     sql("SELECT COUNT(*) as totalProjects from fw_project where user_id =?", user_id, function (err, count) {
-        sql("SELECT * from fw_project where user_id=" + user_id + " LIMIT " + skip + "," + limit, function (err, res) {
+        sql("SELECT * from fw_project where user_id=" + user_id + " ORDER BY id DESC LIMIT " + skip + "," + limit, function (err, res) {
             if (err) {
                 //console.log(err);              
                 result(err, null);
@@ -131,8 +131,18 @@ projectSchema.cancelProject = function (project_id, result) {
             //console.log(err);              
             result(err, null);
         } else {
-            //console.log(res);
-            result(null, res);
+
+            sql("Select fp.project_name from fw_project as fp WHERE fp.id = ?", project_id, function (err, res) {
+                if (err) {
+                    //console.log(err);              
+                    result(err, null);
+                } else {
+                    console.log(res);
+                    result(null, res);
+                }
+            });
+
+            
         }
     });
 };

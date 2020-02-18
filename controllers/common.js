@@ -131,11 +131,10 @@ controller.post('/getDashboardContent', async (req, res) => {
 
 				if (dashboardContent.latestProject.length > 0) {
 					dashboardContent.latestProject.forEach((element) => {
-						let projectStatusArray = [];
+						
 						projectStatusSchema.getProjectStatusById(element.id, async function (err, projectStatus) {
-							projectStatusArray.push(projectStatus[0]);							
-							element['projectStatus'] = projectStatusArray;
-
+														
+							element['projectStatus'] = projectStatus;
 
 						})
 

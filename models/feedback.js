@@ -51,8 +51,13 @@ feedBackSchema.getCompletedProjects = function (obj, result) {
         feedback.forEach(element => {
             feedbackProjectIds.push(element.project_id);
         });//fetch those projects only have submitted feedback
-        let queryString = feedbackProjectIds.toString();//ids of those projects have already submitted feedbacks
-        let query = `SELECT project_name ,id from fw_project where user_id = ${obj.userId} AND project_status = 'Complete' and id not in(${queryString})`
+        let condition = "";
+        if(feedback.length){
+            let queryString = feedbackProjectIds.toString();//ids of those projects have already submitted feedbacks
+            condition =  `and id not in(${queryString})`;
+        }
+        
+        let query = `SELECT project_name ,id from fw_project where user_id = ${obj.userId} AND project_status = 'Complete' ${condition} `
         sql(query, function (err, projects) {
             if (err) {
                 //console.log(err);              
