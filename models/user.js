@@ -156,6 +156,17 @@ userSchema.updateUserProfile = function (body, user_id, result) {
 };
 
 
+userSchema.updateProfileImage = function(user_id,body,result){
+    sql(`UPDATE  fw_user SET profile_pic ="${body.profile_pic}" where user_id = ${user_id}`, function (err, res) {
+        if (err) {
+            //console.log(err);              
+            result(err, null);
+        } else {
+            //console.log(res);
+            result(null, res);
+        }
+    });
+}
 userSchema.fetchUserSettingById = function (user_id, result) {
     sql("Select * from fw_user_setting_notification where user_id = ?", user_id, function (err, res) {
         if (err) {

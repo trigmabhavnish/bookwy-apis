@@ -409,7 +409,7 @@ controller.post('/getProjectDetailsById', async (req, res) => {
             //console.log(postData);
             projectSchema.getProjectDetailsById(postData, async function (err, projectDetails) {
                 if (err) { return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.UNABLE_TO_FETCH_DETAILS }); }
-
+                
                 let projectStatusArray = [];
                 await projectStatusSchema.getProjectStatusById(req.body.projectId, async function (err, projectStatus) {
 
