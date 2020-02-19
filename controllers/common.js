@@ -112,6 +112,8 @@ controller.post('/getDashboardContent', async (req, res) => {
 			// get Latest Project of User
 			//get Project Type Details
 			projectSchema.getDashboardContent(user[0].user_id, async function (err, dashboardContent) {
+
+				// get Support Ticket Details
 				if (dashboardContent.latestSupport.length > 0) {
 					dashboardContent.latestSupport.forEach((element) => {
 						let messages = [];
@@ -128,6 +130,7 @@ controller.post('/getDashboardContent', async (req, res) => {
 					});
 				}
 
+				// get Project Status Details
 				if (dashboardContent.latestProject.length > 0) {
 					dashboardContent.latestProject.forEach((element) => {
 						
@@ -140,10 +143,11 @@ controller.post('/getDashboardContent', async (req, res) => {
 
 					});
 				}
+				
 
 				setTimeout(() => {
 
-					res.status(def.API_STATUS.SUCCESS.OK).send({ response:msg.RESPONSE.SUCCESS_FETCH_DETAILS, user_name:user[0].user_name, latestProject: (dashboardContent.latestProject.length > 0)?dashboardContent.latestProject[0]:{}, latestSupport: (dashboardContent.latestSupport.length > 0)?dashboardContent.latestSupport[0]:{}, projectCount: (dashboardContent.projectCount.length > 0)? dashboardContent.projectCount[0]: {} });
+					res.status(def.API_STATUS.SUCCESS.OK).send({ response:msg.RESPONSE.SUCCESS_FETCH_DETAILS, user_name:user[0].user_name, latestProject: (dashboardContent.latestProject.length > 0)?dashboardContent.latestProject:[], latestSupport: (dashboardContent.latestSupport.length > 0)?dashboardContent.latestSupport:[], projectCount: (dashboardContent.projectCount.length > 0)? dashboardContent.projectCount[0]: {} });
 
 				}, 1000)
 			});
