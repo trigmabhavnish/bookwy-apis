@@ -142,8 +142,7 @@ controller.post('/getDashboardContent', async (req, res) => {
 
 
 					});
-				}
-				
+				}		
 
 				setTimeout(() => {
 
