@@ -24,8 +24,8 @@ const projectSchema = function (project) {
     this.additional_resources = project.additional_resources; // new Field
     this.choice_of_writers = project.choice_of_writers; // new Field
     this.writers_career = project.writers_career; // new Field
-    //this.writers_age = project.writers_age; // new Field
-    this.writers_age = '18-25';
+    this.writers_age = project.writers_age; // new Field
+    //this.writers_age = '18-25';
     this.writers_location = project.writers_location; // new Field
 
     //this.keyword_id = project.keyword_id;
@@ -78,7 +78,7 @@ projectSchema.getProjectListings = function (obj, result) {
     let limit = obj.limit;
     let user_id = obj.user_id
     sql("SELECT COUNT(*) as totalProjects from fw_project where user_id =?", user_id, function (err, count) {
-        sql("SELECT * from fw_project where user_id=" + user_id + " LIMIT " + skip + "," + limit, function (err, res) {
+        sql("SELECT * from fw_project where user_id=" + user_id + " ORDER BY id DESC LIMIT " + skip + "," + limit, function (err, res) {
             if (err) {
                 //console.log(err);              
                 result(err, null);
@@ -92,10 +92,10 @@ projectSchema.getProjectListings = function (obj, result) {
 
 projectSchema.getProjectDetailsById = function (obj, result) {
 
-    let proejct_id = obj.proejct_id;
+    let project_id = obj.project_id;
     let user_id = obj.user_id
 
-    sql("Select fp.*, fpf.file_name, fpf.file_category, fpf.file_path, fpf.file_key, fpf.file_mimetype from fw_project as fp INNER JOIN fw_project_files as fpf ON fp.id = fpf.project_id where fp.user_id = ? AND fp.id = ?", [user_id, proejct_id], function (err, res) {
+    sql("Select fp.*, fpf.file_name, fpf.file_category, fpf.file_path, fpf.file_key, fpf.file_mimetype, fpt.project_type_name from fw_project as fp INNER JOIN fw_project_files as fpf ON fp.id = fpf.project_id INNER JOIN fw_project_type as fpt ON fp.project_type_id = fpt.id where fp.user_id = ? AND fp.id = ?", [user_id, project_id], function (err, res) {
         if (err) {
             //console.log(err);              
             result(err, null);
@@ -122,6 +122,63 @@ projectSchema.updateProject = function (updatedProjectDetails, result) {
     });
 };
 
+projectSchema.cancelProject = function (project_id, result) {
+
+    let updateQuery = `UPDATE fw_project SET project_status = 'Cancel' WHERE id='${project_id}'`;
+
+    sql(updateQuery, function (err, res) {
+        if (err) {
+            //console.log(err);              
+            result(err, null);
+        } else {
+
+            sql("Select fp.project_name from fw_project as fp WHERE fp.id = ?", project_id, function (err, res) {
+                if (err) {
+                    //console.log(err);              
+                    result(err, null);
+                } else {
+                    console.log(res);
+                    result(null, res);
+                }
+            });
+
+            
+        }
+    });
+};
+
+
+projectSchema.updateProjectStatus = function (project_id, project_status, result) {
+
+    let updateQuery = `UPDATE fw_project SET project_status = '${project_status}' WHERE id='${project_id}'`;
+
+    sql(updateQuery, function (err, res) {
+        if (err) {
+            //console.log(err);              
+            result(err, null);
+        } else {
+            //console.log(res);
+            result(null, res);
+        }
+    });
+};
+
+
+projectSchema.getDashboardContent = function (user_id, result) {
+    sql("SELECT (SELECT COUNT(*) as np from fw_project where project_status = 'New' and user_id=" + user_id + ") as np, (SELECT COUNT(*) as ap from fw_project where project_status IN ('Revised', 'Pending') and user_id=" + user_id + ") as ap, (SELECT COUNT(*) as cp from fw_project where project_status = 'Complete' and user_id=" + user_id + ") as cp FROM fw_project WHERE user_id = " + user_id, function (err, projectCount) {
+        sql("SELECT * from fw_project where user_id=" + user_id + " ORDER BY id DESC LIMIT 1", function (err, latestProject) {
+            sql("SELECT * from fw_support_master where user_id=" + user_id + " ORDER BY id DESC LIMIT 1", function (err, latestSupport) {
+                if (err) {
+                    //console.log(err);              
+                    result(err, null);
+                } else {
+                    //console.log(res);
+                    result(null, { latestProject: latestProject, latestSupport: latestSupport, projectCount: projectCount });
+                }
+            });
+        });
+    })
+};
 
 // Project Files
 const projectFileSchema = function (file) {
@@ -162,10 +219,46 @@ projectFileSchema.updateProjectFiles = function (updatedProjectFileDetails, resu
     });
 };
 
+
+// Project Status Schema
+
+const projectStatusSchema = function (status) {
+    this.user_id = status.user_id;
+    this.project_id = status.project_id;
+    this.project_status = status.project_status;
+    this.status_date = new Date();
+}
+
+projectStatusSchema.addProjectStatus = async function (newProjectStatus, result) {
+
+    sql("INSERT INTO fw_project_status set ?", newProjectStatus, function (err, res) {
+        if (err) {
+            //console.log("error: ", err);
+            result(err, null);
+        } else {
+            //console.log(res);
+            result(null, res.insertId);
+        }
+    });
+};
+
+projectStatusSchema.getProjectStatusById = function (projectId, result) {
+
+    sql("Select * from fw_project_status where project_id = ? ", projectId, function (err, res) {
+        if (err) {
+            //console.log(err);              
+            result(err, null);
+        } else {
+            //console.log(res);
+            result(null, res);
+        }
+    });
+};
+
 const projectJoiSchema = {
 
     project_code: Joi.string().trim().min(10).max(10).required(),
-    project_name: Joi.string().trim().min(2).max(50).required(),
+    project_name: Joi.string().trim().min(2).max(200).required(),
     project_topic: Joi.string().trim().min(2).max(50).required(),
     project_type: Joi.string().trim().min(2).max(50).required(),
     quantity: Joi.number().required(),
@@ -173,7 +266,7 @@ const projectJoiSchema = {
     project_details: Joi.string().trim().required(),
     additional_resources: Joi.string().trim().allow(''),
     additional_resources: Joi.string().trim().allow(''),
-    project_package: Joi.string().trim().required(),
+    project_package: Joi.number().required(),
     project_cost: Joi.string().trim().required(),
     choice_of_writers: Joi.string().trim().allow(''),
     writers_career: Joi.string().trim().allow(''),
@@ -196,5 +289,6 @@ function validateProject(project) {
 }
 
 module.exports.projectSchema = projectSchema;
+module.exports.projectStatusSchema = projectStatusSchema;
 module.exports.projectFileSchema = projectFileSchema;
 module.exports.validateProject = validateProject;

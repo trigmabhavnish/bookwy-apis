@@ -80,7 +80,7 @@ userSchema.checkEmailAlreadyExists = function (email, result) {
 };
 
 userSchema.fetchUserByAuthToken = function (authToken, result) {
-    sql("Select user_id , account_balance, director_id ,profile_pic, first_name , last_name  from fw_user where auth_token = ? and status = 'Y'", authToken, function (err, res) {
+    sql("Select user_id , account_balance, director_id ,profile_pic, first_name , last_name, user_name, email  from fw_user where auth_token = ? and status = 'Y'", authToken, function (err, res) {
         if (err) {
             //console.log(err);              
             result(err, null);
@@ -118,9 +118,9 @@ userSchema.fetchUserProfileById = function (user_id, result) {
 
 
 userSchema.updateUserProfile = function (body, user_id, result) {
-            let setting = body.settings;
-            let notification = body.notification;
-            let updateProfileQuery = `UPDATE fw_user SET 
+    let setting = body.settings;
+    let notification = body.notification;
+    let updateProfileQuery = `UPDATE fw_user SET 
                                 profile_pic = '${body.profile_pic}',
                                 company_name = '${body.company_name}',
                                 first_name = '${body.first_name}',
@@ -135,24 +135,24 @@ userSchema.updateUserProfile = function (body, user_id, result) {
     let settingQuery = `UPDATE fw_user_setting_notification SET gender_winter = '${setting.gender_winter}',country_winter = '${setting.country_winter}',age_brack_writers = '${setting.age_brack_writers}',specialization = '${setting.specialization}',hide_profile = '${body.hide_profile}',new_project = '${body.new_project}',complet_project = '${body.complet_project}',imp_update_project = '${body.imp_update_project}',new_payment = '${body.new_payment}',freebie = '${body.freebie}',new_message = '${body.new_message}',my_profile = '${body.my_profile}',other_update = '${body.other_update}' where user_id = ${user_id}
                         `
 
-                        console.log('the sql ',settingQuery)
-                    sql(updateProfileQuery, function (err, res) {
-                        if (err) {
-                            //console.log(err);              
-                            result(err, null);
-                        } else {
-                            sql(settingQuery, function (err, res) {
-                                if (err) {
-                                    //console.log(err);              
-                                    result(err, null);
-                                } else {
-                                    //console.log(res);
-                                    result(null, res);
-                                }
-                            })
+    console.log('the sql ', settingQuery)
+    sql(updateProfileQuery, function (err, res) {
+        if (err) {
+            //console.log(err);              
+            result(err, null);
+        } else {
+            sql(settingQuery, function (err, res) {
+                if (err) {
+                    //console.log(err);              
+                    result(err, null);
+                } else {
+                    //console.log(res);
+                    result(null, res);
+                }
+            })
 
-                        }
-                    });
+        }
+    });
 };
 
 

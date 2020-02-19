@@ -13,12 +13,17 @@ const controller = express.Router();
 const {
     projectSchema,
     projectFileSchema,
+    projectStatusSchema,
     validateProject
 } = require('../models/project');
 
 const {
     userSchema
 } = require('../models/user');
+
+const {
+    sendMail
+} = require('../helpers/emailService');
 
 /**
  * get Project Type
@@ -84,8 +89,9 @@ controller.post('/addNewProject', validate(validateProject), async (req, res) =>
                         }
 
                         // Update File Data in project files table
+                        let fileDetails;
                         if (req.body.project_files.length > 0) {
-                            let fileDetails = {
+                            fileDetails = {
                                 project_id: newProjectId,
                                 user_id: userDetails[0].user_id,
                                 file_path: req.body.project_files[0].file_path,
@@ -95,7 +101,7 @@ controller.post('/addNewProject', validate(validateProject), async (req, res) =>
                                 file_category: req.body.project_files[0].file_category,
                             };
                         } else {
-                            let fileDetails = {
+                            fileDetails = {
                                 project_id: newProjectId,
                                 user_id: userDetails[0].user_id,
                                 file_path: '',
@@ -110,6 +116,34 @@ controller.post('/addNewProject', validate(validateProject), async (req, res) =>
                         projectFileSchema.addProjectFiles(newProjectFiles, async function (err, newFileId) { });
                         // Update File Data in project files table
 
+                        // Update Project Status in project status table
+                        let projectStatusDetails = {
+                            project_id: newProjectId,
+                            user_id: userDetails[0].user_id,
+                            project_status: 'New',
+                            status_description: 'Project Created'
+                        };
+
+                        let newProjectStatus = new projectStatusSchema(projectStatusDetails);
+                        projectStatusSchema.addProjectStatus(projectStatusDetails, async function (err, newStatusId) { });
+                        // Update Project Status in project status table
+
+                        // Send Email to User
+                        const name = userDetails[0].first_name + ' ' + userDetails[0].last_name
+                        const mailBody = {
+                            to: userDetails[0].email,
+                            from: config.get('fromEmail'),
+                            subject: "Project Created",
+                            template_id: config.get('email_templates.project_updates_template'),
+                            dynamic_template_data: {
+                                name: name,
+                                project_name: req.body.project_name,
+                                project_updates: 'Your project has been successfully created'
+                            }
+                        }
+                        sendMail(mailBody)
+                        // Send Email to User
+
                         res.status(def.API_STATUS.SUCCESS.OK).send({ response: msg.RESPONSE.PROJECT_ADDED });
                     });
 
@@ -123,7 +157,7 @@ controller.post('/addNewProject', validate(validateProject), async (req, res) =>
 });
 
 /**
- * get Project Type
+ * Update Project
  */
 controller.post('/updateProject', async (req, res) => {
 
@@ -132,7 +166,7 @@ controller.post('/updateProject', async (req, res) => {
     let authToken = req.headers['x-auth-token'];
     //Verify User 
     userSchema.fetchUserByAuthToken(authToken, function (err, userDetails) {
-        if (err) { return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.UNABLE_TO_ADD_PROJECT }); }
+        if (err) { return res.status(def.API_STATUS.SERVER_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.UNABLE_TO_ADD_PROJECT }); }
         if (userDetails.length > 0) {
 
             let lastProjectCost = req.body.lastProjectCost;
@@ -140,7 +174,7 @@ controller.post('/updateProject', async (req, res) => {
 
             // check project cose is greater than available credits
             if (Math.abs(updatedProjectCost) > Math.abs(userDetails[0].account_balance)) {
-                return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.INSUFFICIENT_CREDITS });
+                return res.status(def.API_STATUS.SERVER_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.INSUFFICIENT_CREDITS });
             } else {
                 let updatedProjectDetails = {
                     project_id: req.body.project_id,
@@ -163,7 +197,7 @@ controller.post('/updateProject', async (req, res) => {
 
 
                 projectSchema.updateProject(updatedProjectDetails, async function (err, updateProject) {
-                    if (err) { return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.UNABLE_TO_UPDATE_PROJECT }); }
+                    if (err) { return res.status(def.API_STATUS.SERVER_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.UNABLE_TO_UPDATE_PROJECT }); }
 
                     // Update Account Balance of User
                     let updatedAccountBalance = ((Math.abs(userDetails[0].account_balance) + Math.abs(lastProjectCost)) - Math.abs(req.body.project_cost)).toFixed(2);
@@ -171,7 +205,7 @@ controller.post('/updateProject', async (req, res) => {
                     userSchema.updateUserAccountBalance(updatedAccountBalance, userDetails[0].user_id, function (err, userUpdate) {
                         if (err) {
 
-                            return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.UNABLE_TO_UPDATE_PROJECT });
+                            return res.status(def.API_STATUS.SERVER_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.UNABLE_TO_UPDATE_PROJECT });
                         }
 
                         // Update File Data in project files table
@@ -196,7 +230,132 @@ controller.post('/updateProject', async (req, res) => {
                 });
             }
         } else {
-            return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.UNABLE_TO_UPDATE_PROJECT });
+            return res.status(def.API_STATUS.SERVER_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.UNABLE_TO_UPDATE_PROJECT });
+        }
+    });
+});
+
+
+/**
+ * Cancel Project
+ */
+controller.post('/cancelProject', async (req, res) => {
+
+
+    // Fetch UserDetails using Auth Token
+    let authToken = req.headers['x-auth-token'];
+    //Verify User 
+    userSchema.fetchUserByAuthToken(authToken, function (err, userDetails) {
+        if (err) { return res.status(def.API_STATUS.SERVER_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.UNABLE_TO_CANCEL_PROJECT }); }
+        if (userDetails.length > 0) {
+
+            projectSchema.cancelProject(req.body.project_id, async function (err, updateProject) {
+                if (err) { return res.status(def.API_STATUS.SERVER_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.UNABLE_TO_CANCEL_PROJECT }); }
+
+                // Update Account Balance of User
+                let updatedAccountBalance = (Math.abs(userDetails[0].account_balance) + Math.abs(req.body.project_cost)).toFixed(2);
+
+                userSchema.updateUserAccountBalance(updatedAccountBalance, userDetails[0].user_id, function (err, userUpdate) {
+                    if (err) {
+
+                        return res.status(def.API_STATUS.SERVER_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.UNABLE_TO_CANCEL_PROJECT });
+                    }
+
+                    // Update Project Status in project status table
+                    let projectStatusDetails = {
+                        project_id: req.body.project_id,
+                        user_id: userDetails[0].user_id,
+                        project_status: 'Cancel',
+                        status_description: 'Project Cancelled'
+                    };
+
+                    let newProjectStatus = new projectStatusSchema(projectStatusDetails);
+                    projectStatusSchema.addProjectStatus(projectStatusDetails, async function (err, newStatusId) { });
+                    // Update Project Status in project status table
+
+                    // Send Email to User
+                    const name = userDetails[0].first_name + ' ' + userDetails[0].last_name
+                    const mailBody = {
+                        to: userDetails[0].email,
+                        from: config.get('fromEmail'),
+                        subject: "Project Cancelled",
+                        template_id: config.get('email_templates.project_updates_template'),
+                        dynamic_template_data: {
+                            name: name,
+                            project_name: updateProject[0].project_name,
+                            project_updates: 'Your project has been successfully cancelled'
+                        }
+                    }
+                    sendMail(mailBody)
+                    // Send Email to User
+
+                    // Update File Data in project files table
+                    res.status(def.API_STATUS.SUCCESS.OK).send({ response: msg.RESPONSE.PROJECT_CANCELLED });
+                });
+
+
+            });
+
+        } else {
+            return res.status(def.API_STATUS.SERVER_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.UNABLE_TO_CANCEL_PROJECT });
+        }
+    });
+});
+
+
+/**
+ * Update Project Status
+ */
+controller.post('/updateProjectStatus', async (req, res) => {
+
+
+    // Fetch UserDetails using Auth Token
+    let authToken = req.headers['x-auth-token'];
+    //Verify User 
+    userSchema.fetchUserByAuthToken(authToken, function (err, userDetails) {
+        if (err) { return res.status(def.API_STATUS.SERVER_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.UNABLE_TO_UPDATE_PROJECT_STATUS }); }
+        if (userDetails.length > 0) {
+
+            projectSchema.updateProjectStatus(req.body.project_id, req.body.project_status, async function (err, updateProject) {
+                if (err) { return res.status(def.API_STATUS.SERVER_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.UNABLE_TO_UPDATE_PROJECT_STATUS }); }
+
+
+                // Update Project Status in project status table
+                let statusDescription = "";
+                if(req.body.project_status == "Pause"){
+                    statusDescription = "Project Paused."
+                }
+                if(req.body.project_status == "Resume"){
+                    statusDescription = "Project Resumed."
+                }
+                if(req.body.project_status == "Cancel"){
+                    statusDescription = "Project Cancelled."
+                }
+                if(req.body.project_status == "Complete"){
+                    statusDescription = "Project Completed."
+                }
+                if(req.body.project_status == "Revised"){
+                    statusDescription = "Project Revised."
+                }
+
+                let projectStatusDetails = {
+                    project_id: req.body.project_id,
+                    user_id: userDetails[0].user_id,
+                    project_status: req.body.project_status,
+                    status_description: statusDescription
+                };
+
+                let newProjectStatus = new projectStatusSchema(projectStatusDetails);
+                projectStatusSchema.addProjectStatus(projectStatusDetails, async function (err, newStatusId) { });
+                // Update Project Status in project status table
+
+                res.status(def.API_STATUS.SUCCESS.OK).send({ response: msg.RESPONSE.PROJECT_STATUS_UPDATED });
+
+
+            });
+
+        } else {
+            return res.status(def.API_STATUS.SERVER_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.UNABLE_TO_UPDATE_PROJECT_STATUS });
         }
     });
 });
@@ -239,24 +398,33 @@ controller.post('/getProjectDetailsById', async (req, res) => {
 
     // Fetch UserDetails using Auth Token
     let authToken = req.headers['x-auth-token'];
-    let skip = (parseInt(req.body.pageNumber) * parseInt(req.body.pageSize)) - parseInt(req.body.pageSize);
-    let limit = parseInt(req.body.pageSize);
 
     //Verify User 
     userSchema.fetchUserByAuthToken(authToken, function (err, userDetails) {
-        if (err) { return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.UNABLE_TO_FIND_USER }); }
+        if (err) { return res.status(def.API_STATUS.SERVER_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.UNABLE_TO_FIND_USER }); }
         if (userDetails.length > 0) {
             //get Project Listings Details
 
-            let postData = { user_id: userDetails[0].user_id, proejct_id: req.body.projectId };
+            let postData = { user_id: userDetails[0].user_id, project_id: req.body.projectId };
+            //console.log(postData);
             projectSchema.getProjectDetailsById(postData, async function (err, projectDetails) {
                 if (err) { return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.UNABLE_TO_FETCH_DETAILS }); }
+                
+                let projectStatusArray = [];
+                await projectStatusSchema.getProjectStatusById(req.body.projectId, async function (err, projectStatus) {
 
-                res.status(def.API_STATUS.SUCCESS.OK).send({ response: msg.RESPONSE.SUCCESS_FETCH_DETAILS, project_details: projectDetails[0] });
+                    projectStatusArray = projectStatus;
+
+                    // Send Response
+                    res.status(def.API_STATUS.SUCCESS.OK).send({ response: msg.RESPONSE.SUCCESS_FETCH_DETAILS, project_details: projectDetails[0], project_status: projectStatusArray });
+
+                });
+
+
 
             });
         } else {
-            return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.UNABLE_TO_FIND_USER });
+            return res.status(def.API_STATUS.SERVER_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.UNABLE_TO_FIND_USER });
         }
     });
 

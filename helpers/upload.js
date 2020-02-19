@@ -52,6 +52,7 @@ const fileFilter = (req, file, cb) => {
 
 const upload = multer({
   fileFilter,
+  limits: { fieldSize: 25 * 1024 * 1024 },
   storage: multerS3({
     acl: 'public-read',
     s3,
