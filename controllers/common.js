@@ -144,9 +144,12 @@ controller.post('/getDashboardContent', async (req, res) => {
 					});
 				}		
 
+
+				let show_name = (user[0].first_name) ? (user[0].first_name + ' ' + (user[0].last_name)) : user[0].user_name;
+
 				setTimeout(() => {
 
-					res.status(def.API_STATUS.SUCCESS.OK).send({ response:msg.RESPONSE.SUCCESS_FETCH_DETAILS, user_name:user[0].user_name, latestProject: (dashboardContent.latestProject.length > 0)?dashboardContent.latestProject:[], latestSupport: (dashboardContent.latestSupport.length > 0)?dashboardContent.latestSupport:[], projectCount: (dashboardContent.projectCount.length > 0)? dashboardContent.projectCount[0]: {} });
+					res.status(def.API_STATUS.SUCCESS.OK).send({ response:msg.RESPONSE.SUCCESS_FETCH_DETAILS, show_name : show_name, latestProject: (dashboardContent.latestProject.length > 0)?dashboardContent.latestProject:[], latestSupport: (dashboardContent.latestSupport.length > 0)?dashboardContent.latestSupport:[], projectCount: (dashboardContent.projectCount.length > 0)? dashboardContent.projectCount[0]: {} });
 
 				}, 1000)
 			});

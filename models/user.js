@@ -105,7 +105,7 @@ userSchema.fetchUserById = function (user_id, result) {
 
 
 userSchema.fetchUserProfileById = function (user_id, result) {
-    sql("Select email, profile_pic,user_id,user_name, first_name, last_name, email,reg_date,last_login,company_name,profession,website,country,dob,sp_member_from,account_type from fw_user where user_id = ? and status = 'Y'", user_id, function (err, res) {
+    sql("Select email, profile_pic,user_id,user_name, first_name, last_name, email,reg_date,last_login,company_name,profession,website,country,dob,sp_member_from,account_type, account_balance from fw_user where user_id = ? and status = 'Y'", user_id, function (err, res) {
         if (err) {
             //console.log(err);              
             result(err, null);
