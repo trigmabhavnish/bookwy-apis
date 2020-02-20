@@ -28,8 +28,8 @@ const RESPONSE = {
     PASSWORD_UPDATED: "Password updated successfully.",
     PASSWORD_UPDATE_ERROR: "Failed to update your password. Please try again later.",
     FAILED_TO_UPLOAD_DOC: "Ooops, unable to upload your document. please try again later.",
-    DOC_UPLOAD_SUCCESSFULLY: "Upload successfully.",
-    DOC_REMOVE_SUCCESSFULLY: "Remove successfully.",
+    DOC_UPLOAD_SUCCESSFULLY: "Uploaded successfully.",
+    DOC_REMOVE_SUCCESSFULLY: "Removed successfully.",
     FILE_NOT_FOUND: "File Not Found.",
     UNABLE_TO_FIND_USER:'Inavlid User.',    
     FAILED_TO_UPDATE:'Unable to update record'

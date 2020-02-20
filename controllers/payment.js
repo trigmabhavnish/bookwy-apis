@@ -36,7 +36,7 @@ controller.post('/make-payment', async (req, res) => {
             return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: error.message });
         } else {
 
-          
+
             var params = {
                 "merchantOrderId": response[0].id + 1000,
                 "token": req.body.token,
@@ -53,7 +53,7 @@ controller.post('/make-payment', async (req, res) => {
                     "phoneNumber": "5555555555"
                 }
             };
-            console.log('hi',params)
+            console.log('hi', params)
             tco.checkout.authorize(params, function (error, data) {
                 if (error) {
                     return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: error.message });
@@ -66,18 +66,22 @@ controller.post('/make-payment', async (req, res) => {
                     userSchema.fetchUserByAuthToken(authToken, async function (err, userDetails) {
                         if (err) { return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.FAILED_TO_SAVED }); }
                         else {
-                            creditSchema.addCreditsByTwoCheckout(userDetails[0].user_id, body, function (err, result) {
-                                if (err) { return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.FAILED_TO_SAVED }); }
-                                else {
-                                    res.status(def.API_STATUS.SUCCESS.OK).send({ result: result });
-                                }
-                            })
+                            if (userDetails.length > 0) {
+                                creditSchema.addCreditsByTwoCheckout(userDetails[0].user_id, body, function (err, result) {
+                                    if (err) { return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.FAILED_TO_SAVED }); }
+                                    else {
+                                        res.status(def.API_STATUS.SUCCESS.OK).send({ result: result });
+                                    }
+                                })
+                            } else {
+                                return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.FAILED_TO_SAVED })
+                            }
                         }
 
 
                     })
 
-                  
+
                 }
             });
         }
