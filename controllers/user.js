@@ -40,7 +40,7 @@ controller.post('/signup', validate(validateUser), async (req, res) => {
         // Create New User
         else {
             userSchema.createUser(newUser, function (err, user) {
-                
+
 
                 if (err) { return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.UNABLE_TO_REGISTER }); }
 
@@ -150,7 +150,7 @@ controller.post('/verifyAuthToken', async (req, res) => {
             // delete Verification String in DB
             userSchema.deleteVerificationToken(req.body.verifyToken, async function (err, updateVerifyToken) { });
 
-            res.status(def.API_STATUS.SUCCESS.OK).send({ response: true, user_id: user[0].user_id});
+            res.status(def.API_STATUS.SUCCESS.OK).send({ response: true, user_id: user[0].user_id });
 
         } else {
             return res.status(def.API_STATUS.CLIENT_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.FAILED_TO_VERIFY });
@@ -168,7 +168,7 @@ controller.post('/resetPassword', validate(validateResetPassword), async (req, r
         // if Email Exists in the system
         if (user.length > 0) {
 
-            
+
 
             // Update Verification String in DB
             userSchema.resetPassword(req.body.password, req.body.user_id, async function (err, updatePassword) {
@@ -176,13 +176,13 @@ controller.post('/resetPassword', validate(validateResetPassword), async (req, r
                 if (err) { return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.PASSWORD_UPDATE_ERROR }); }
 
                 const name = user[0].first_name + ' ' + user[0].last_name
-                
+
                 const mailBody = {
                     to: user[0].email,
                     from: config.get('fromEmail'),
                     Subject: "Bookwy: Reset Password Successfully.",
                     template_id: config.get('email_templates.reset_password_template'),
-                    dynamic_template_data: {                        
+                    dynamic_template_data: {
                         email: user[0].email,
                         name: name
                     }
@@ -233,7 +233,7 @@ controller.get('/getProfile', async (req, res) => {
                 userSchema.fetchUserSettingById(userDetails[0].user_id, async function (err, settings) {
                     if (err) { return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.FAILED_TO_SAVED }); }
                     else {
-                        res.status(def.API_STATUS.SUCCESS.OK).send({profile:profile,settings:settings});
+                        res.status(def.API_STATUS.SUCCESS.OK).send({ profile: profile, settings: settings });
                     }
                 })
 
@@ -253,7 +253,7 @@ controller.get('/getProfile', async (req, res) => {
  * This is for updating profile image
  */
 
-controller.post('/updateProfilePic',async (req,res)=>{
+controller.post('/updateProfilePic', async (req, res) => {
     var authToken = req.headers['x-auth-token'];
 
     //Verify User 
@@ -261,11 +261,11 @@ controller.post('/updateProfilePic',async (req,res)=>{
 
         if (userDetails.length > 0) {
 
-            userSchema.updateProfileImage(userDetails[0].user_id,req.body,function(err, profile){
-             if(err)
-             return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: err });
-             else
-             res.status(def.API_STATUS.SUCCESS.OK).send({profile:profile});
+            userSchema.updateProfileImage(userDetails[0].user_id, req.body, function (err, profile) {
+                if (err)
+                    return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: err });
+                else
+                    res.status(def.API_STATUS.SUCCESS.OK).send({ profile: profile });
 
             })
         }
@@ -283,14 +283,14 @@ controller.post('/updateProfile', async (req, res) => {
 
         if (userDetails.length > 0) {
 
-            userSchema.updateUserProfile(req.body,userDetails[0].user_id, async function (err, profile) {
+            userSchema.updateUserProfile(req.body, userDetails[0].user_id, async function (err, profile) {
                 if (err) {
                     return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.FAILED_TO_SAVED });
                 }
 
-               
-                        res.status(def.API_STATUS.SUCCESS.OK).send({profile:profile});
-              
+
+                res.status(def.API_STATUS.SUCCESS.OK).send({ profile: profile });
+
 
             })
 
@@ -305,8 +305,77 @@ controller.post('/updateProfile', async (req, res) => {
 
 
 
+/**
+ * get All support Listing
+ */
+controller.post('/getNotifications', async (req, res) => {
+    // Fetch UserDetails using Auth Token
+    let skip = (parseInt(req.body.pageNumber) * parseInt(req.body.pageSize)) - parseInt(req.body.pageSize);
+    let limit = parseInt(req.body.pageSize);
+    var authToken = req.headers['x-auth-token'];
+
+    //Verify User 
+    userSchema.fetchUserByAuthToken(authToken, async function (err, userDetails) {
+       
+        if (userDetails.length > 0) {
+            userSchema.getNotifications({ skip: skip, limit: limit, user_id: userDetails[0].user_id }, async function (err, resp) {
+                if (err) { return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: err }); }
 
 
+
+                res.status(def.API_STATUS.SUCCESS.OK).send({ totalItems: resp.count[0].totalItem, notifications: resp.notification, });
+            })
+        } else {
+            return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: err });
+        }
+    })
+
+
+});
+/**
+ * get All support Listing
+ */
+controller.post('/notificationCount', async (req, res) => {
+    // Fetch UserDetails using Auth Token
+   
+    var authToken = req.headers['x-auth-token'];
+
+    //Verify User 
+    userSchema.fetchUserByAuthToken(authToken, async function (err, userDetails) {
+       
+        if (userDetails.length > 0) {
+            userSchema.getNotificationCount({user_id: userDetails[0].user_id }, async function (err, resp) {
+                if (err) { return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: err }); }
+                res.status(def.API_STATUS.SUCCESS.OK).send({  count: resp.count, });
+            })
+        } else {
+            return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: err });
+        }
+    })
+
+
+});
+
+/**
+ * get All support Listing
+ */
+controller.post('/changePassword', async (req, res) => {
+    // Fetch UserDetails using Auth Token
+    var authToken = req.headers['x-auth-token'];
+    //Verify User 
+    userSchema.fetchUserByAuthToken(authToken, async function (err, userDetails) {
+        if (userDetails.length > 0) {
+            userSchema.changePassword({user_id: userDetails[0].user_id,password:req.body.password }, async function (err, resp) {
+                if (err) { return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: err }); }
+                res.status(def.API_STATUS.SUCCESS.OK).send({  response:resp });
+            })
+        } else {
+            return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: err });
+        }
+    })
+
+
+});
 
 
 //function to generate jwt token
