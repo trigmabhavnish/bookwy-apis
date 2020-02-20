@@ -46,7 +46,7 @@ controller.post('/getSupportTickets', async (req, res) => {
                     setTimeout(() => {
                         res.status(def.API_STATUS.SUCCESS.OK).send({ totalItems: resp.count[0].totalItem, tickets: resp.tickets, user: userDetails[0] });
 
-                    }, 1000)
+                    }, 4000)
 
                 });
             })
