@@ -291,6 +291,58 @@ userSchema.updateUserAccountBalance = function (updatedAccountBalance, userId, r
 };
 
 
+userSchema.getNotificationCount = function (obj,result){
+    let countQuery = `SELECT COUNT(*) as totalItem from  fw_notification_msg where isread = '0' AND user_id = ${obj.user_id}`;
+    console.log(countQuery)
+    sql(countQuery, function (err, count) {
+        if (err) {
+            //console.log(err);              
+            result(err, null);
+        } else {
+            //console.log(res);
+            result(null, {count: count });
+        }
+    });
+}
+userSchema.changePassword = async function (obj,result){
+    const hashPassword = await bcrypt.hash(obj.password, await bcrypt.genSalt(10));
+    let updateQuery = `UPDATE fw_user SET password = '${hashPassword}' where user_id = ${obj.user_id}`;
+    sql(updateQuery, function (err, res) {
+        if (err) {
+            //console.log(err);              
+            result(err, null);
+        } else {
+            //console.log(res);
+            result(null, res);
+        }
+    });
+}
+
+
+
+userSchema.getNotifications = function (obj, result) {
+    let skip = obj.skip;
+    let limit = obj.limit;
+    // let userId = obj.userId
+    let updateQuery = `UPDATE fw_notification_msg SET isread = '1' where user_id = ${obj.user_id}`
+    let countQuery = `SELECT COUNT(*) as totalItem from  fw_notification_msg where isread = '0' AND user_id = ${obj.user_id}`;
+    let query = `SELECT *from  fw_notification_msg where user_id= ${obj.user_id} LIMIT ${ skip} ,  ${limit}`
+    sql(updateQuery, function (err, done) {
+    sql(countQuery, function (err, count) {
+        sql(query, function (err, res) {
+            if (err) {
+                //console.log(err);              
+                result(err, null);
+            } else {
+                //console.log(res);
+                result(null, { notification: res, count: count });
+            }
+        });
+    })
+    })
+};
+
+
 
 const userJoiSchema = {
 
