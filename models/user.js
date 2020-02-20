@@ -304,6 +304,7 @@ userSchema.getNotificationCount = function (obj,result){
         }
     });
 }
+
 userSchema.changePassword = async function (obj,result){
     const hashPassword = await bcrypt.hash(obj.password, await bcrypt.genSalt(10));
     let updateQuery = `UPDATE fw_user SET password = '${hashPassword}' where user_id = ${obj.user_id}`;
