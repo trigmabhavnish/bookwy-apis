@@ -294,8 +294,8 @@ userSchema.updateUserAccountBalance = function (updatedAccountBalance, userId, r
 
 const userJoiSchema = {
 
-    first_name: Joi.string().trim().min(2).max(50).required(),
-    last_name: Joi.string().trim().min(2).max(50).required(),
+    first_name: Joi.string().trim().min(2).max(20).required(),
+    last_name: Joi.string().trim().min(2).max(20).required(),
     user_name: Joi.string().trim().min(2).max(50).required(),
     email: Joi.string().trim().email().required(),
     // password is required

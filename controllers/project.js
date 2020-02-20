@@ -209,7 +209,7 @@ controller.post('/updateProject', async (req, res) => {
                         }
 
                         // Update File Data in project files table
-                        if (req.body.project_files[0].file_path) {
+                        if (req.body.project_files.length > 0) {
                             let fileDetails = {
                                 project_id: req.body.project_id,
                                 user_id: userDetails[0].user_id,
