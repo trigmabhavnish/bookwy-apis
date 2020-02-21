@@ -120,6 +120,7 @@ userSchema.fetchUserProfileById = function (user_id, result) {
 userSchema.updateUserProfile = function (body, user_id, result) {
     let setting = body.settings;
     let notification = body.notification;
+    let dob = body.dob ? body.dob : new Date()
     let updateProfileQuery = `UPDATE fw_user SET 
                                 profile_pic = '${body.profile_pic}',
                                 company_name = '${body.company_name}',
@@ -130,7 +131,7 @@ userSchema.updateUserProfile = function (body, user_id, result) {
                                 email = '${body.email}',
                                 website = '${body.website}',
                                 country = '${body.country}',
-                                dob = '${new Date(body.dob).toISOString().slice(0, 19).replace('T', ' ')}' where user_id= ${user_id}
+                                dob = '${new Date(dob).toISOString().slice(0, 19).replace('T', ' ')}' where user_id= ${user_id}
                                 `
                                 let settingQuery = `UPDATE fw_user_setting_notification SET new_project = '${body.new_project}',complet_project = '${body.complet_project}',imp_update_project = '${body.imp_update_project}',new_payment = '${body.new_payment}',freebie = '${body.freebie}',new_message = '${body.new_message}',my_profile = '${body.my_profile}',other_update = '${body.other_update}' where user_id = ${user_id}
                         `
