@@ -65,8 +65,7 @@ controller.post('/saveFeedBack', async (req, res) => {
     userSchema.fetchUserByAuthToken(authToken, async function (err, userDetails) {
         feedBackSchema.saveFeedBack({ userId: userDetails[0].user_id ,body:req.body}, async function (err, resp) {
             if (err) { return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: err }); }
-
-            res.status(def.API_STATUS.SUCCESS.OK).send(true);
+            res.status(def.API_STATUS.SUCCESS.OK).send({response:true});
 
         })
     });

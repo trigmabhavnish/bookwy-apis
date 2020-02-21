@@ -80,7 +80,7 @@ userSchema.checkEmailAlreadyExists = function (email, result) {
 };
 
 userSchema.fetchUserByAuthToken = function (authToken, result) {
-    sql("Select user_id , account_balance, director_id ,profile_pic, first_name , last_name  from fw_user where auth_token = ? and status = 'Y'", authToken, function (err, res) {    
+    sql("Select user_id , account_balance, director_id ,profile_pic, first_name , last_name, user_name, email  from fw_user where auth_token = ? and status = 'Y'", authToken, function (err, res) {
         if (err) {
             //console.log(err);              
             result(err, null);
@@ -93,6 +93,81 @@ userSchema.fetchUserByAuthToken = function (authToken, result) {
 
 userSchema.fetchUserById = function (user_id, result) {
     sql("Select email, first_name, last_name from fw_user where user_id = ? and status = 'Y'", user_id, function (err, res) {
+        if (err) {
+            //console.log(err);              
+            result(err, null);
+        } else {
+            //console.log(res);
+            result(null, res);
+        }
+    });
+};
+
+
+userSchema.fetchUserProfileById = function (user_id, result) {
+    sql("Select email, profile_pic,user_id,user_name, first_name, last_name, email,reg_date,last_login,company_name,profession,website,country,dob,sp_member_from,account_type, account_balance from fw_user where user_id = ? and status = 'Y'", user_id, function (err, res) {
+        if (err) {
+            //console.log(err);              
+            result(err, null);
+        } else {
+            //console.log(res);
+            result(null, res);
+        }
+    });
+};
+
+
+userSchema.updateUserProfile = function (body, user_id, result) {
+    let setting = body.settings;
+    let notification = body.notification;
+    let updateProfileQuery = `UPDATE fw_user SET 
+                                profile_pic = '${body.profile_pic}',
+                                company_name = '${body.company_name}',
+                                first_name = '${body.first_name}',
+                                last_name = '${body.last_name}',
+                                user_name = '${body.user_name}',
+                                profession = '${body.profession}',
+                                email = '${body.email}',
+                                website = '${body.website}',
+                                country = '${body.country}',
+                                dob = '${new Date(body.dob).toISOString().slice(0, 19).replace('T', ' ')}' where user_id= ${user_id}
+                                `
+                                let settingQuery = `UPDATE fw_user_setting_notification SET new_project = '${body.new_project}',complet_project = '${body.complet_project}',imp_update_project = '${body.imp_update_project}',new_payment = '${body.new_payment}',freebie = '${body.freebie}',new_message = '${body.new_message}',my_profile = '${body.my_profile}',other_update = '${body.other_update}' where user_id = ${user_id}
+                        `
+
+    sql(updateProfileQuery, function (err, res) {
+        if (err) {
+            //console.log(err);              
+            result(err, null);
+        } else {
+            sql(settingQuery, function (err, res) {
+                if (err) {
+                    //console.log(err);              
+                    result(err, null);
+                } else {
+                    //console.log(res);
+                    result(null, res);
+                }
+            })
+
+        }
+    });
+};
+
+
+userSchema.updateProfileImage = function(user_id,body,result){
+    sql(`UPDATE  fw_user SET profile_pic ="${body.profile_pic}" where user_id = ${user_id}`, function (err, res) {
+        if (err) {
+            //console.log(err);              
+            result(err, null);
+        } else {
+            //console.log(res);
+            result(null, res);
+        }
+    });
+}
+userSchema.fetchUserSettingById = function (user_id, result) {
+    sql("Select * from fw_user_setting_notification where user_id = ?", user_id, function (err, res) {
         if (err) {
             //console.log(err);              
             result(err, null);
@@ -216,11 +291,64 @@ userSchema.updateUserAccountBalance = function (updatedAccountBalance, userId, r
 };
 
 
+userSchema.getNotificationCount = function (obj,result){
+    let countQuery = `SELECT COUNT(*) as totalItem from  fw_notification_msg where isread = '0' AND user_id = ${obj.user_id}`;
+    console.log(countQuery)
+    sql(countQuery, function (err, count) {
+        if (err) {
+            //console.log(err);              
+            result(err, null);
+        } else {
+            //console.log(res);
+            result(null, {count: count });
+        }
+    });
+}
+
+userSchema.changePassword = async function (obj,result){
+    const hashPassword = await bcrypt.hash(obj.password, await bcrypt.genSalt(10));
+    let updateQuery = `UPDATE fw_user SET password = '${hashPassword}' where user_id = ${obj.user_id}`;
+    sql(updateQuery, function (err, res) {
+        if (err) {
+            //console.log(err);              
+            result(err, null);
+        } else {
+            //console.log(res);
+            result(null, res);
+        }
+    });
+}
+
+
+
+userSchema.getNotifications = function (obj, result) {
+    let skip = obj.skip;
+    let limit = obj.limit;
+    // let userId = obj.userId
+    let updateQuery = `UPDATE fw_notification_msg SET isread = '1' where user_id = ${obj.user_id}`
+    let countQuery = `SELECT COUNT(*) as totalItem from  fw_notification_msg where isread = '0' AND user_id = ${obj.user_id}`;
+    let query = `SELECT *from  fw_notification_msg where user_id= ${obj.user_id} LIMIT ${ skip} ,  ${limit}`
+    sql(updateQuery, function (err, done) {
+    sql(countQuery, function (err, count) {
+        sql(query, function (err, res) {
+            if (err) {
+                //console.log(err);              
+                result(err, null);
+            } else {
+                //console.log(res);
+                result(null, { notification: res, count: count });
+            }
+        });
+    })
+    })
+};
+
+
 
 const userJoiSchema = {
 
-    first_name: Joi.string().trim().min(2).max(50).required(),
-    last_name: Joi.string().trim().min(2).max(50).required(),
+    first_name: Joi.string().trim().min(2).max(20).required(),
+    last_name: Joi.string().trim().min(2).max(20).required(),
     user_name: Joi.string().trim().min(2).max(50).required(),
     email: Joi.string().trim().email().required(),
     // password is required

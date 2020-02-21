@@ -78,7 +78,7 @@ projectSchema.getProjectListings = function (obj, result) {
     let limit = obj.limit;
     let user_id = obj.user_id
     sql("SELECT COUNT(*) as totalProjects from fw_project where user_id =?", user_id, function (err, count) {
-        sql("SELECT * from fw_project where user_id=" + user_id + " LIMIT " + skip + "," + limit, function (err, res) {
+        sql("SELECT * from fw_project where user_id=" + user_id + " ORDER BY id DESC LIMIT " + skip + "," + limit, function (err, res) {
             if (err) {
                 //console.log(err);              
                 result(err, null);
@@ -131,6 +131,32 @@ projectSchema.cancelProject = function (project_id, result) {
             //console.log(err);              
             result(err, null);
         } else {
+
+            sql("Select fp.project_name from fw_project as fp WHERE fp.id = ?", project_id, function (err, res) {
+                if (err) {
+                    //console.log(err);              
+                    result(err, null);
+                } else {
+                    console.log(res);
+                    result(null, res);
+                }
+            });
+
+
+        }
+    });
+};
+
+
+projectSchema.updateProjectStatus = function (project_id, project_status, result) {
+
+    let updateQuery = `UPDATE fw_project SET project_status = '${project_status}' WHERE id='${project_id}'`;
+
+    sql(updateQuery, function (err, res) {
+        if (err) {
+            //console.log(err);              
+            result(err, null);
+        } else {
             //console.log(res);
             result(null, res);
         }
@@ -138,7 +164,31 @@ projectSchema.cancelProject = function (project_id, result) {
 };
 
 
+projectSchema.getDashboardContent = function (user_id, result) {
+    // get Project Count
+    sql("SELECT (SELECT COUNT(*) as np from fw_project where project_status = 'New' and user_id=" + user_id + ") as np, (SELECT COUNT(*) as ap from fw_project where project_status IN ('Revised', 'Pending') and user_id=" + user_id + ") as ap, (SELECT COUNT(*) as cp from fw_project where project_status = 'Complete' and user_id=" + user_id + ") as cp FROM fw_project WHERE user_id = " + user_id, function (err, projectCount) {
 
+        // get Latest Project
+        sql("SELECT * from fw_project where user_id=" + user_id + " ORDER BY id DESC LIMIT 1", function (err, latestProject) {
+
+            // get Latest Support
+            sql("SELECT * from fw_support_master where user_id=" + user_id + " ORDER BY id DESC LIMIT 1", function (err, latestSupport) {
+
+                // get Latest 3 Feedbacks
+                sql("SELECT fw_user.user_id, fw_user.user_name, fw_user.profile_pic, fw_feedback.overall_rate,fw_feedback.project_id, fw_feedback.user_id,fw_feedback.feed_desc,fw_feedback.feed_con,fw_feedback.feed_date,fw_feedback.status FROM fw_feedback INNER JOIN fw_user ON fw_feedback.user_id = fw_user.user_id where fw_feedback.status='Y' ORDER BY fw_feedback.feed_date DESC LIMIT 0,3", function (err, latestFeedbacks) {
+                    if (err) {
+                        //console.log(err);              
+                        result(err, null);
+                    } else {
+                        //console.log(res);
+                        result(null, { latestProject: latestProject, latestSupport: latestSupport, projectCount: projectCount, latestFeedbacks: latestFeedbacks });
+                    }
+                });
+
+            });
+        });
+    })
+};
 
 // Project Files
 const projectFileSchema = function (file) {
@@ -186,7 +236,7 @@ const projectStatusSchema = function (status) {
     this.user_id = status.user_id;
     this.project_id = status.project_id;
     this.project_status = status.project_status;
-    this.status_date = new Date();    
+    this.status_date = new Date();
 }
 
 projectStatusSchema.addProjectStatus = async function (newProjectStatus, result) {
@@ -203,7 +253,7 @@ projectStatusSchema.addProjectStatus = async function (newProjectStatus, result)
 };
 
 projectStatusSchema.getProjectStatusById = function (projectId, result) {
-    
+
     sql("Select * from fw_project_status where project_id = ? ", projectId, function (err, res) {
         if (err) {
             //console.log(err);              

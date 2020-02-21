@@ -7,7 +7,6 @@ sgMail.setApiKey(config.get('send_grid.secret_key'));
 
 
 function sendMail(options) {
-    //console.log(options)
     const msg = {
         to: options.to,
         from: config.get('fromEmail'),
@@ -15,7 +14,6 @@ function sendMail(options) {
         html: options.message,
     };
     sgMail.send(options).then().catch(e => {
-        console.log('the error is ', e);
     })
 }
 

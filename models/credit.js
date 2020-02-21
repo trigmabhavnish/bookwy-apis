@@ -32,13 +32,44 @@ creditSchema.addCredits = async function (newCredits, result) {
 
     sql("INSERT INTO fw_payment set ?", newCredits, function (err, res) {
         if (err) {
-            //console.log("error: ", err);
             result(err, null);
         } else {
-            //console.log(res);
             result(null, res.insertId);
         }
     });
+};
+
+creditSchema.getLatestPayemntId = async function (result) {
+    sql('SELECT * FROM fw_payment ORDER BY ID DESC LIMIT 1', function (err, res) {
+        if (err) {
+            result(err, null);
+
+        } else {
+            result(null, res);
+        }
+
+    })
+}
+
+creditSchema.addCreditsByTwoCheckout = async function (user_id, body, result) {
+
+    let paymentQuery =
+        `INSERT INTO fw_payment (code,payment_date,unit,qty,cost,payment_method, user_id,status,
+        coupon_code,discount,transaction_code,admin_note)
+        VALUES('${body.code}','${new Date().toISOString().slice(0, 19).replace('T', ' ')}','Credits',
+         '${body.credits}','${body.credits}','TC','${user_id}','Y',
+         '${body.coupon_code}','${body.discount}','${body.transactionId}','')`
+            sql(paymentQuery, function (err, res) {
+                if (err) {
+                    //console.log("error: ", err);
+                    result(err, null);
+
+                } else {
+                    //console.log(res);
+                    result(null, res);
+                }
+
+            })
 };
 
 
