@@ -115,18 +115,22 @@ controller.post('/getDashboardContent', async (req, res) => {
 
 				// get Support Ticket Details
 				if (dashboardContent.latestSupport.length > 0) {
-					dashboardContent.latestSupport.forEach((element) => {
-						let messages = [];
-						supportSchema.getMessages(element.id, async function (err, message) {
-							messages.push(message[0]);
-							messages.push(message[message.length - 1]);
-							element['messages'] = messages;
-							element['director'] = director;
+
+					supportSchema.getDirector(user[0].director_id, async function (err, director) {
+
+						dashboardContent.latestSupport.forEach((element) => {
+							let messages = [];
+							supportSchema.getMessages(element.id, async function (err, message) {
+								messages.push(message[0]);
+								messages.push(message[message.length - 1]);
+								element['messages'] = messages;
+								element['director'] = director;
 
 
-						})
+							})
 
 
+						});
 					});
 				}
 
