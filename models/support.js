@@ -100,7 +100,7 @@ supportSchema.createTicket = function (body, userId, result) {
 
 supportSchema.saveMessage = function (body, supportId,userId, result) {
     let message = body.message;
-    let support_file_url = body.support_files.length ?  body.support_files[0].file_path : null;
+    let support_file_url = body.support_files.length ?  body.support_files[0].file_path : "";
     let cur_Date = new Date();
     sql("insert into fw_support set support_id = ? ,message = ? ,instanciate_id = ?, cur_date = ? ,support_file = ? ", [supportId, message, userId, cur_Date,support_file_url], function (err, res) {
         if (err) {
