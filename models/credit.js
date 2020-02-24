@@ -72,7 +72,20 @@ creditSchema.addCreditsByTwoCheckout = async function (user_id, body, result) {
             })
 };
 
+creditSchema.addPaymentOrders = async function (paymentOrderDetails, result) {
 
+    let paymentOrderQuery =
+        `INSERT INTO fw_payment_orders (user_id, instantiate_id, type, amount)
+        VALUES('${paymentOrderDetails.user_id}', '${paymentOrderDetails.instantiate_id}', '${paymentOrderDetails.type}', '${paymentOrderDetails.amount}')`;
+
+    sql(paymentOrderQuery, function (err, res) {
+        if (err) {
+            result(err, null);
+        } else {
+            result(null, res.insertId);
+        }
+    });
+};
 
 creditSchema.getListing = async function (obj, result) {
     let skip = obj.skip;
