@@ -115,7 +115,9 @@ controller.post('/getDashboardContent', async (req, res) => {
 
 				// get Support Ticket Details
 				if (dashboardContent.latestSupport.length > 0) {
+
 					supportSchema.getDirector(user[0].director_id, async function (err, director) {
+
 						dashboardContent.latestSupport.forEach((element) => {
 							let messages = [];
 							supportSchema.getMessages(element.id, async function (err, message) {
