@@ -59,8 +59,34 @@ controller.post('/onTransactionComplete', validate(validateTransactionData), asy
                         return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.UNABLE_TO_ADD_CREDITS });
                     }
 
+                   /* // Update in Payment Orders Page
+                    let paymentOrderDetails = {user_id: userDetails[0].user_id, instantiate_id:newCredit, type:'credits', amount: req.body.cost}
+                    creditSchema.addPaymentOrders(paymentOrderDetails, async function (err, newPaymentOrderId) {});
+                    // Update in Payment Orders Page
+
+                    // Send Email to User
+                    const name = userDetails[0].first_name + ' ' + userDetails[0].last_name
+                    const mailBody = {
+                        to: userDetails[0].email,
+                        from: config.get('fromEmail'),
+                        subject: "Bookwy: Credits Added",
+                        template_id: config.get('email_templates.add_credits_template'),
+                        dynamic_template_data: {
+                            name: name,
+                            credits: req.body.qty,
+                            transaction_id: req.body.transaction_code,
+                            amount_charged: req.body.amount_charged,
+                            payment_type: req.body.payment_method,
+                            payment_date: req.body.payment_date,
+                        }
+                    }
+                    sendMail(mailBody)
+                    // Send Email to User */
+
+
                     res.status(def.API_STATUS.SUCCESS.OK).send({ response: msg.RESPONSE.CREDITS_ADDED });
                 });
+                 // Update Account Balance in User Profile
 
                 
             });
