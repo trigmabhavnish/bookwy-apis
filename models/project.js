@@ -216,7 +216,7 @@ projectFileSchema.addProjectFiles = async function (newProjectFile, result) {
 
 projectFileSchema.updateProjectFiles = function (updatedProjectFileDetails, result) {
 
-    let updateQuery = `UPDATE fw_project_files SET file_path = '${updatedProjectFileDetails.file_name}', file_name = '${updatedProjectFileDetails.file_name}', file_key = '${updatedProjectFileDetails.file_key}', file_mimetype = '${updatedProjectFileDetails.file_mimetype}' WHERE project_id='${updatedProjectFileDetails.project_id}'`;
+    let updateQuery = `UPDATE fw_project_files SET file_path = '${updatedProjectFileDetails.file_path}', file_name = '${updatedProjectFileDetails.file_name}', file_key = '${updatedProjectFileDetails.file_key}', file_mimetype = '${updatedProjectFileDetails.file_mimetype}' WHERE project_id='${updatedProjectFileDetails.project_id}'`;
 
     sql(updateQuery, function (err, res) {
         if (err) {

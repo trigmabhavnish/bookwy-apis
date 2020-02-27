@@ -59,7 +59,7 @@ const upload = multer({
     bucket: config.get('aws.bucket'), 
     key: function (req, file, cb) {
 		var extension = "jpg";
-		console.log('the file is',file)
+		
 		if (file.mimetype == "image/png") extension = "png";
 		
 		else if (file.mimetype == "image/jpeg") extension = "jpeg";
