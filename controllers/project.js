@@ -9,6 +9,7 @@ const validate = require('../interceptors/validate');
 const bcrypt = require('bcryptjs'); // for password encryption
 const express = require('express');
 const controller = express.Router();
+const aws = require('aws-sdk');
 
 const {
     projectSchema,
@@ -24,6 +25,21 @@ const {
 const {
     sendMail
 } = require('../helpers/emailService');
+
+
+aws.config.update({
+    // Your SECRET ACCESS KEY from AWS should go here,
+    // Never share it!
+    // Setup Env Variable, e.g: process.env.SECRET_ACCESS_KEY
+    secretAccessKey: config.get('aws.secretKey'),
+    // Not working key, Your ACCESS KEY ID from AWS should go here,
+    // Never share it!
+    // Setup Env Variable, e.g: process.env.ACCESS_KEY_ID
+    accessKeyId: config.get('aws.accessKey'),
+    region: config.get('aws.region'), // region of your bucket
+});
+
+const s3 = new aws.S3();
 
 /**
  * get Project Type
@@ -70,7 +86,7 @@ controller.post('/addNewProject', validate(validateProject), async (req, res) =>
                     writers_career: req.body.writers_career,
                     writers_age: req.body.writers_age,
                     writers_location: req.body.writers_location,
-                    project_file: (req.body.project_files.length > 0) ? req.body.project_files[0].file_path : '',
+                    project_file: (req.body.project_files.length > 0) ? req.body.project_files[0].file_key : '',
                     user_id: userDetails[0].user_id
                 };
 
@@ -191,7 +207,7 @@ controller.post('/updateProject', async (req, res) => {
                     writers_career: req.body.writers_career,
                     writers_age: req.body.writers_age,
                     writers_location: req.body.writers_location,
-                    project_file: (req.body.project_files.length > 0) ? req.body.project_files[0].file_path : ''
+                    project_file: (req.body.project_files.length > 0) ? req.body.project_files[0].file_key : ''
                 };
 
 
@@ -322,19 +338,19 @@ controller.post('/updateProjectStatus', async (req, res) => {
 
                 // Update Project Status in project status table
                 let statusDescription = "";
-                if(req.body.project_status == "Pause"){
+                if (req.body.project_status == "Pause") {
                     statusDescription = "Project Paused."
                 }
-                if(req.body.project_status == "Resume"){
+                if (req.body.project_status == "Resume") {
                     statusDescription = "Project Resumed."
                 }
-                if(req.body.project_status == "Cancel"){
+                if (req.body.project_status == "Cancel") {
                     statusDescription = "Project Cancelled."
                 }
-                if(req.body.project_status == "Complete"){
+                if (req.body.project_status == "Complete") {
                     statusDescription = "Project Completed."
                 }
-                if(req.body.project_status == "Revised"){
+                if (req.body.project_status == "Revised") {
                     statusDescription = "Project Revised."
                 }
 
@@ -372,7 +388,7 @@ controller.post('/getProjectListings', async (req, res) => {
 
     //Verify User 
     userSchema.fetchUserByAuthToken(authToken, function (err, userDetails) {
-        if (err) { return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.UNABLE_TO_FIND_USER }); }
+        if (err) { return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.UNABLE_TO_FETCH_DETAILS }); }
         if (userDetails.length > 0) {
             //get Project Listings Details
 
@@ -384,7 +400,7 @@ controller.post('/getProjectListings', async (req, res) => {
 
             });
         } else {
-            return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.UNABLE_TO_FIND_USER });
+            return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.UNABLE_TO_FETCH_DETAILS });
         }
     });
 
@@ -401,7 +417,7 @@ controller.post('/getProjectDetailsById', async (req, res) => {
 
     //Verify User 
     userSchema.fetchUserByAuthToken(authToken, function (err, userDetails) {
-        if (err) { return res.status(def.API_STATUS.SERVER_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.UNABLE_TO_FIND_USER }); }
+        if (err) { return res.status(def.API_STATUS.SERVER_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.UNABLE_TO_FETCH_DETAILS }); }
         if (userDetails.length > 0) {
             //get Project Listings Details
 
@@ -409,14 +425,55 @@ controller.post('/getProjectDetailsById', async (req, res) => {
             //console.log(postData);
             projectSchema.getProjectDetailsById(postData, async function (err, projectDetails) {
                 if (err) { return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.UNABLE_TO_FETCH_DETAILS }); }
-                
+
                 let projectStatusArray = [];
                 await projectStatusSchema.getProjectStatusById(req.body.projectId, async function (err, projectStatus) {
 
                     projectStatusArray = projectStatus;
 
+                    let completedFilePath = config.get('aws.bucket_url');
+                    let completedFilePathLocal = 'assets/';
+
+                    if (projectDetails[0]['completed_project_file'] != "") {
+                        var params = {
+                            Bucket: config.get('aws.bucket'),
+                            Key: projectDetails[0]['completed_project_file']
+                        };
+
+                        s3.headObject(params, function (err, metadata) {
+                            if (err && err.code === 'NotFound') {
+                                // Local File Path  
+                                projectDetails[0]['completed_project_file'] = completedFilePathLocal + projectDetails[0]['completed_project_file'];
+                            } else {
+                                // S3 File Path
+                                projectDetails[0]['completed_project_file'] = completedFilePath + projectDetails[0]['completed_project_file'];
+                            }
+                        });
+
+                    }
+
+                    if (projectDetails[0]['project_file'] != "") {
+
+                        var params = {
+                            Bucket: config.get('aws.bucket'),
+                            Key: projectDetails[0]['project_file']
+                        };
+                        s3.headObject(params, function (err, metadata) {
+                            if (err && err.code === 'NotFound') {
+                                // Local File Path  
+                                projectDetails[0]['project_file'] = completedFilePathLocal + projectDetails[0]['project_file'];
+                            } else {
+                                // S3 File Path
+                                projectDetails[0]['project_file'] = completedFilePath + projectDetails[0]['project_file'];
+                            }
+                        });
+                    }
+
                     // Send Response
-                    res.status(def.API_STATUS.SUCCESS.OK).send({ response: msg.RESPONSE.SUCCESS_FETCH_DETAILS, project_details: projectDetails[0], project_status: projectStatusArray });
+                    setTimeout(() => {
+                        res.status(def.API_STATUS.SUCCESS.OK).send({ response: msg.RESPONSE.SUCCESS_FETCH_DETAILS, project_details: projectDetails[0], project_status: projectStatusArray });
+                    }, 1000);
+
 
                 });
 
@@ -424,7 +481,7 @@ controller.post('/getProjectDetailsById', async (req, res) => {
 
             });
         } else {
-            return res.status(def.API_STATUS.SERVER_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.UNABLE_TO_FIND_USER });
+            return res.status(def.API_STATUS.SERVER_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.UNABLE_TO_FETCH_DETAILS });
         }
     });
 

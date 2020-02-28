@@ -85,7 +85,7 @@ controller.post('/login', validate(validateUserLogin), async (req, res) => {
             // Update Login Details
             userSchema.updateLoginDetails(user[0].user_id, lastLogin, authToken, function (err, updateUser) {
 
-                if (err) { return res.status(def.API_STATUS.CLIENT_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.UNABLE_TO_LOGIN }); }
+                if (err) { return res.status(def.API_STATUS.CLIENT_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.UNABLE_TO_LOGIN }); }
 
                 // Login Successfully
                 res.setHeader('x-auth-token', authToken);
