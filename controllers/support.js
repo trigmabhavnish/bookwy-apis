@@ -10,6 +10,21 @@ const msg = require('../models/def/responsemessages');
 const {
     supportSchema
 } = require('../models/support');
+const aws = require('aws-sdk');
+
+aws.config.update({
+    // Your SECRET ACCESS KEY from AWS should go here,
+    // Never share it!
+    // Setup Env Variable, e.g: process.env.SECRET_ACCESS_KEY
+    secretAccessKey: config.get('aws.secretKey'),
+    // Not working key, Your ACCESS KEY ID from AWS should go here,
+    // Never share it!
+    // Setup Env Variable, e.g: process.env.ACCESS_KEY_ID
+    accessKeyId: config.get('aws.accessKey'),
+    region: config.get('aws.region'), // region of your bucket
+});
+
+const s3 = new aws.S3();
 
 /**
  * get All support Listing
@@ -21,7 +36,7 @@ controller.post('/getSupportTickets', async (req, res) => {
     let limit = parseInt(req.body.pageSize);
     //Verify User 
     userSchema.fetchUserByAuthToken(authToken, async function (err, userDetails) {
-        if (err) { return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.UNABLE_TO_FIND_USER }); }
+        if (err) { return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.UNABLE_TO_FETCH_DETAILS }); }
         if (userDetails.length > 0) {
             supportSchema.getDirector(userDetails[0].director_id, async function (err, director) {
 
@@ -136,8 +151,6 @@ controller.post('/updateTicket', async (req, res) => {
 })
 
 
-
-
 /**
  * get support details with messages
  */
@@ -146,20 +159,49 @@ controller.post('/getTicketDetails', async (req, res) => {
     var authToken = req.headers['x-auth-token'];
     //Verify User 
     userSchema.fetchUserByAuthToken(authToken, async function (err, userDetails) {
-        if (err) { return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.UNABLE_TO_FIND_USER }); }
+        if (err) { return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.UNABLE_TO_FETCH_DETAILS }); }
         if (userDetails.length > 0) {
             let responseObj = {};
             supportSchema.getDirector(userDetails[0].director_id, async function (err, director) {
                 supportSchema.getSupportTicket(req.body.supportId, async function (err, support) {
-                    if (err) return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.UNABLE_TO_FIND_USER });
+                    if (err) return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.UNABLE_TO_FETCH_DETAILS });
                     else {
                         supportSchema.getTicketMessages(req.body.supportId, async function (err, messages) {
+
+                            if (messages.length > 0) {
+                                messages.forEach((element) => {
+                                    if (element.support_file != "") {
+
+                                        let completedFilePath = config.get('aws.bucket_url');
+                                        let completedFilePathLocal = 'assets/';
+
+                                        var params = {
+                                            Bucket: config.get('aws.bucket'),
+                                            Key: element.support_file
+                                        };
+
+                                        s3.headObject(params, function (err, metadata) {
+                                            if (err && err.code === 'NotFound') {
+                                                // Local File Path  
+                                                element.support_file = completedFilePathLocal + element.support_file;
+                                            } else {
+                                                // S3 File Path
+                                                element.support_file = completedFilePath + element.support_file;
+                                            }
+                                        });
+
+                                    }
+                                })
+                            }
+
                             responseObj['director'] = director;
                             responseObj['support'] = support;
                             responseObj['messages'] = messages;
                             responseObj['user'] = userDetails[0];
 
-                            res.status(def.API_STATUS.SUCCESS.OK).send(responseObj);
+                            setTimeout(() => {
+                                res.status(def.API_STATUS.SUCCESS.OK).send(responseObj);
+                            }, 1000);
 
                         })
                     }

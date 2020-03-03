@@ -59,9 +59,7 @@ const upload = multer({
     bucket: config.get('aws.bucket'), 
     key: function (req, file, cb) {
 		var extension = "jpg";
-		console.log('the file is',file)
-		if (file.mimetype == "image/png") extension = "png";
-		
+		if (file.mimetype == "image/png") extension = "png";		
 		else if (file.mimetype == "image/jpeg") extension = "jpeg";
 		else if (file.mimetype == "image/x-citrix-jpeg") extension = "jpeg";
 		else if (file.mimetype == "application/pdf") extension = "pdf";
@@ -69,9 +67,10 @@ const upload = multer({
 		else if (file.mimetype == "application/vnd.openxmlformats-officedocument.wordprocessingml.document") extension = "docx";
 		else if (file.mimetype == "text/csv") extension = "csv";
 		else if (file.mimetype == "application/vnd.ms-excel") extension = "xls";
-		else if (file.mimetype == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet") extension = "xlsx";
-		
+		else if (file.mimetype == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet") extension = "xlsx";		
 		else if (file.mimetype == "application/zip") extension = "zip";
+		else if (file.mimetype == "application/x-rar-compressed" || file.mimetype == "application/vnd.rar"  || file.mimetype == "application/octet-stream") extension = "rar";
+		else if (file.mimetype == "text/plain") extension = "txt";
 		
 		
       const folderName = (req.body.folder)?req.body.folder+'/':'';     

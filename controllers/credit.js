@@ -54,7 +54,8 @@ controller.post('/onTransactionComplete', validate(validateTransactionData), asy
                 if (err) { return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.UNABLE_TO_ADD_CREDITS }); }
 
                 // Update Account Balance in User Profile
-                userSchema.updateUserAccountBalance(req.body.qty, userDetails[0].user_id, function (err, userUpdate) {
+                let UpdatedAccountBalance = userDetails[0].account_balance + req.body.qty;
+                userSchema.updateUserAccountBalance(UpdatedAccountBalance, userDetails[0].user_id, function (err, userUpdate) {
                     if (err) {                        
                         return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.UNABLE_TO_ADD_CREDITS });
                     }

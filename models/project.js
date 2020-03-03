@@ -166,7 +166,7 @@ projectSchema.updateProjectStatus = function (project_id, project_status, result
 
 projectSchema.getDashboardContent = function (user_id, result) {
     // get Project Count
-    sql("SELECT (SELECT COUNT(*) as np from fw_project where project_status = 'New' and user_id=" + user_id + ") as np, (SELECT COUNT(*) as ap from fw_project where project_status IN ('Revised', 'Pending') and user_id=" + user_id + ") as ap, (SELECT COUNT(*) as cp from fw_project where project_status = 'Complete' and user_id=" + user_id + ") as cp FROM fw_project WHERE user_id = " + user_id, function (err, projectCount) {
+    sql("SELECT (SELECT COUNT(*) as np from fw_project where project_status = 'New' and user_id=" + user_id + ") as np, (SELECT COUNT(*) as ap from fw_project where project_status IN ('Revised', 'Pending', 'Resume') and user_id=" + user_id + ") as ap, (SELECT COUNT(*) as cp from fw_project where project_status = 'Complete' and user_id=" + user_id + ") as cp FROM fw_project WHERE user_id = " + user_id, function (err, projectCount) {
 
         // get Latest Project
         sql("SELECT * from fw_project where user_id=" + user_id + " ORDER BY id DESC LIMIT 1", function (err, latestProject) {
@@ -216,7 +216,7 @@ projectFileSchema.addProjectFiles = async function (newProjectFile, result) {
 
 projectFileSchema.updateProjectFiles = function (updatedProjectFileDetails, result) {
 
-    let updateQuery = `UPDATE fw_project_files SET file_path = '${updatedProjectFileDetails.file_name}', file_name = '${updatedProjectFileDetails.file_name}', file_key = '${updatedProjectFileDetails.file_key}', file_mimetype = '${updatedProjectFileDetails.file_mimetype}' WHERE project_id='${updatedProjectFileDetails.project_id}'`;
+    let updateQuery = `UPDATE fw_project_files SET file_path = '${updatedProjectFileDetails.file_path}', file_name = '${updatedProjectFileDetails.file_name}', file_key = '${updatedProjectFileDetails.file_key}', file_mimetype = '${updatedProjectFileDetails.file_mimetype}' WHERE project_id='${updatedProjectFileDetails.project_id}'`;
 
     sql(updateQuery, function (err, res) {
         if (err) {
@@ -269,8 +269,8 @@ const projectJoiSchema = {
 
     project_code: Joi.string().trim().min(10).max(10).required(),
     project_name: Joi.string().trim().min(2).max(200).required(),
-    project_topic: Joi.string().trim().min(2).max(50).required(),
-    project_type: Joi.string().trim().min(2).max(50).required(),
+    project_topic: Joi.string().trim().min(2).max(200).required(),
+    project_type: Joi.string().trim().min(2).max(200).required(),
     quantity: Joi.number().required(),
     word_count: Joi.number().required(),
     project_details: Joi.string().trim().required(),
