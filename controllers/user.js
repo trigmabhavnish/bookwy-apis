@@ -316,8 +316,6 @@ controller.post('/updateProfile', async (req, res) => {
 })
 
 
-
-
 /**
  * get All support Listing
  */

@@ -103,9 +103,8 @@ userSchema.fetchUserById = function (user_id, result) {
     });
 };
 
-
 userSchema.fetchUserProfileById = function (user_id, result) {
-    sql("Select email, profile_pic,user_id,user_name, first_name, last_name, email,reg_date,last_login,company_name,profession,website,country,dob,sp_member_from,account_type, account_balance, skype, mobile, about_us from fw_user where user_id = ? and status = 'Y'", user_id, function (err, res) {
+    sql("Select email, profile_pic,user_id,user_name, first_name, last_name, email,reg_date,last_login,company_name, company_description, profession,website,country,dob,sp_member_from,account_type, account_balance, skype, mobile, about_us from fw_user where user_id = ? and status = 'Y'", user_id, function (err, res) {
         if (err) {
             //console.log(err);              
             result(err, null);
@@ -116,7 +115,6 @@ userSchema.fetchUserProfileById = function (user_id, result) {
     });
 };
 
-
 userSchema.updateUserProfile = async function (body, user_id, result) {
     let setting = body.settings;
     let notification = body.notification;
@@ -126,20 +124,19 @@ userSchema.updateUserProfile = async function (body, user_id, result) {
         const hashPassword = await bcrypt.hash(body.password, await bcrypt.genSalt(10));
         updatePasswordToo = ", password = '"+hashPassword+"'";
     }
-
+    console.log(body);
     let updateProfileQuery = `UPDATE fw_user SET 
                                 profile_pic = '${body.profile_pic}',
                                 company_name = '${body.company_name}',
                                 first_name = '${body.first_name}',
                                 last_name = '${body.last_name}',
-                                user_name = '${body.user_name}',
-                                profession = '${body.profession}',
+                                user_name = '${body.user_name}',                                
                                 email = '${body.email}',
                                 website = '${body.website}',
                                 country = '${body.country}',
                                 skype = '${body.skype}',
                                 mobile = '${body.mobile}',
-                                about_us = '${body.company_description}',
+                                company_description = '${body.company_description}',
                                 dob = '${new Date(dob).toISOString().slice(0, 19).replace('T', ' ')}'
                                 ${updatePasswordToo}
                                 where user_id= ${user_id}`;
@@ -166,7 +163,6 @@ userSchema.updateUserProfile = async function (body, user_id, result) {
     });
 };
 
-
 userSchema.updateProfileImage = function (user_id, body, result) {
     sql(`UPDATE  fw_user SET profile_pic ="${body.profile_pic}" where user_id = ${user_id}`, function (err, res) {
         if (err) {
@@ -178,6 +174,7 @@ userSchema.updateProfileImage = function (user_id, body, result) {
         }
     });
 }
+
 userSchema.fetchUserSettingById = function (user_id, result) {
     sql("Select * from fw_user_setting_notification where user_id = ?", user_id, function (err, res) {
         if (err) {
@@ -302,7 +299,6 @@ userSchema.updateUserAccountBalance = function (updatedAccountBalance, userId, r
     });
 };
 
-
 userSchema.getNotificationCount = function (obj, result) {
     let countQuery = `SELECT COUNT(*) as totalItem from  fw_notification_msg where isread = '0' AND user_id = ${obj.user_id}`;
     console.log(countQuery)
@@ -331,8 +327,6 @@ userSchema.changePassword = async function (obj, result) {
     });
 }
 
-
-
 userSchema.getNotifications = function (obj, result) {
     let skip = obj.skip;
     let limit = obj.limit;
@@ -354,8 +348,6 @@ userSchema.getNotifications = function (obj, result) {
         })
     })
 };
-
-
 
 const userJoiSchema = {
 
