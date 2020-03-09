@@ -80,7 +80,7 @@ userSchema.checkEmailAlreadyExists = function (email, result) {
 };
 
 userSchema.fetchUserByAuthToken = function (authToken, result) {
-    sql("Select user_id , account_balance, director_id ,profile_pic, first_name , last_name, user_name, email  from fw_user where auth_token = ? and status = 'Y'", authToken, function (err, res) {
+    sql("Select fu.user_id , fu.account_balance, fu.director_id , fu.profile_pic, fu.first_name , fu.last_name, fu.user_name, fu.email, fsn.new_project, fsn.complet_project, fsn.imp_update_project, fsn.new_payment, fsn.freebie, fsn.new_message, fsn.my_profile, fsn.other_update from fw_user as fu INNER JOIN fw_user_setting_notification as fsn ON fu.user_id = fsn.user_id where fu.auth_token = ? and fu.status = 'Y'", authToken, function (err, res) {
         if (err) {
             //console.log(err);              
             result(err, null);

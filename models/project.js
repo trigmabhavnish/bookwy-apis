@@ -17,6 +17,7 @@ const projectSchema = function (project) {
     this.quantity = project.quantity;
     this.word_count = project.word_count;
     this.project_cost = project.project_cost;
+    this.project_status = project.project_status;
     this.user_id = project.user_id;
     this.project_file = project.project_file;
     this.project_cdate = new Date();
@@ -57,6 +58,19 @@ projectSchema.deleteProject = async function (newProjectId, result) {
         } else {
             //console.log(res);
             result(null, res);
+        }
+    });
+};
+
+projectSchema.saveNotification = async function (notificationMsg, user_id, result) {
+
+    sql("INSERT INTO fw_notification_msg set message = ?, user_id = ?", [notificationMsg, user_id], function (err, res) {
+        if (err) {
+            //console.log("error: ", err);
+            result(err, null);
+        } else {
+            //console.log(res);
+            result(null, res.insertId);
         }
     });
 };
