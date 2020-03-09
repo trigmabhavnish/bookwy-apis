@@ -20,9 +20,7 @@ controller.post('/getFeedBacks', async (req, res) => {
     let limit = parseInt(req.body.pageSize);
     feedBackSchema.getFeedBackList({ skip: skip, limit: limit }, async function (err, resp) {
         if (err) { return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: err }); }
-
-
-
+        //console.log('feedback', resp.feedback);
         res.status(def.API_STATUS.SUCCESS.OK).send({ totalItems: resp.count[0].totalItem, feedback: resp.feedback, });
     })
 
