@@ -31,7 +31,7 @@ controller.post('/signup', validate(validateUser), async (req, res) => {
 
     //checking user email already exists
     userSchema.checkEmailAlreadyExists(req.body.email, function (err, email) {
-        if (err) { return res.status(def.API_STATUS.SERVER_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.UNABLE_TO_REGISTER }); }
+        if (err) { return res.status(def.API_STATUS.CLIENT_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.UNABLE_TO_REGISTER }); }
 
         // if Email Already Exists
         if (email.length > 0) {
@@ -42,7 +42,7 @@ controller.post('/signup', validate(validateUser), async (req, res) => {
             userSchema.createUser(newUser, function (err, user) {
 
 
-                if (err) { return res.status(def.API_STATUS.SERVER_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.UNABLE_TO_REGISTER }); }
+                if (err) { return res.status(def.API_STATUS.CLIENT_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.UNABLE_TO_REGISTER }); }
 
                 const name = req.body.first_name + ' ' + req.body.last_name
 
@@ -68,7 +68,7 @@ controller.post('/login', validate(validateUserLogin), async (req, res) => {
 
     //checking user email already exists
     userSchema.checkUserLogin(req.body.email, async function (err, user) {
-        if (err) { return res.status(def.API_STATUS.SERVER_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.UNABLE_TO_LOGIN }); }
+        if (err) { return res.status(def.API_STATUS.CLIENT_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.UNABLE_TO_LOGIN }); }
 
         // if Email Exists in the system
         if (user.length > 0) {
@@ -116,7 +116,7 @@ controller.post('/forgotPassword', validate(validateEmail), async (req, res) => 
 
     //checking user email already exists
     userSchema.checkUserLogin(req.body.email, async function (err, user) {
-        if (err) { return res.status(def.API_STATUS.SERVER_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.UNABLE_TO_FETCH_DETAILS }); }
+        if (err) { return res.status(def.API_STATUS.CLIENT_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.UNABLE_TO_FETCH_DETAILS }); }
 
         // if Email Exists in the system
         if (user.length > 0) {
@@ -156,7 +156,7 @@ controller.post('/verifyAuthToken', async (req, res) => {
 
     //checking user auth token
     userSchema.verifyAuthToken(req.body.verifyToken, async function (err, user) {
-        if (err) { return res.status(def.API_STATUS.SERVER_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.FAILED_TO_VERIFY }); }
+        if (err) { return res.status(def.API_STATUS.CLIENT_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.FAILED_TO_VERIFY }); }
         if (user.length > 0) {
             // delete Verification String in DB
             userSchema.deleteVerificationToken(req.body.verifyToken, async function (err, updateVerifyToken) { });
@@ -174,7 +174,7 @@ controller.post('/resetPassword', validate(validateResetPassword), async (req, r
 
     //checking user id exists
     userSchema.fetchUserById(req.body.user_id, async function (err, user) {
-        if (err) { return res.status(def.API_STATUS.SERVER_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.PASSWORD_UPDATE_ERROR }); }
+        if (err) { return res.status(def.API_STATUS.CLIENT_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.PASSWORD_UPDATE_ERROR }); }
 
         // if Email Exists in the system
         if (user.length > 0) {
@@ -184,7 +184,7 @@ controller.post('/resetPassword', validate(validateResetPassword), async (req, r
             // Update Verification String in DB
             userSchema.resetPassword(req.body.password, req.body.user_id, async function (err, updatePassword) {
 
-                if (err) { return res.status(def.API_STATUS.SERVER_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.PASSWORD_UPDATE_ERROR }); }
+                if (err) { return res.status(def.API_STATUS.CLIENT_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.PASSWORD_UPDATE_ERROR }); }
 
                 const name = user[0].first_name + ' ' + user[0].last_name
 
@@ -219,7 +219,7 @@ controller.post('/logout', async (req, res) => {
 
     //checking user email already exists
     userSchema.logout(authToken, function (err, logoutDetails) {
-        if (err) { return res.status(def.API_STATUS.SERVER_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.UNABLE_TO_LOGOUT }); }
+        if (err) { return res.status(def.API_STATUS.CLIENT_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.UNABLE_TO_LOGOUT }); }
         res.status(def.API_STATUS.SUCCESS.OK).send({ response: msg.RESPONSE.LOGOUT_SUCCESSFULLY });
     });
 });
@@ -235,11 +235,11 @@ controller.get('/getProfile', async (req, res) => {
 
             userSchema.fetchUserProfileById(userDetails[0].user_id, async function (err, profile) {
                 if (err) {
-                    return res.status(def.API_STATUS.SERVER_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.FAILED_TO_SAVED });
+                    return res.status(def.API_STATUS.CLIENT_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.FAILED_TO_SAVED });
                 }
 
                 userSchema.fetchUserSettingById(userDetails[0].user_id, async function (err, settings) {
-                    if (err) { return res.status(def.API_STATUS.SERVER_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.FAILED_TO_SAVED }); }
+                    if (err) { return res.status(def.API_STATUS.CLIENT_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.FAILED_TO_SAVED }); }
                     else {
                         res.status(def.API_STATUS.SUCCESS.OK).send({ profile: profile, settings: settings });
                     }
@@ -249,7 +249,7 @@ controller.get('/getProfile', async (req, res) => {
 
         }
         else {
-            return res.status(def.API_STATUS.SERVER_ERROR.BAD_REQUEST).send({ response: err });
+            return res.status(def.API_STATUS.CLIENT_ERROR.BAD_REQUEST).send({ response: err });
         }
 
     })
@@ -269,7 +269,7 @@ controller.post('/updateProfilePic', async (req, res) => {
 
             userSchema.updateProfileImage(userDetails[0].user_id, req.body, function (err, profile) {
                 if (err)
-                    return res.status(def.API_STATUS.SERVER_ERROR.BAD_REQUEST).send({ response: err });
+                    return res.status(def.API_STATUS.CLIENT_ERROR.BAD_REQUEST).send({ response: err });
                 else
                     res.status(def.API_STATUS.SUCCESS.OK).send({ profile: profile });
 
@@ -290,26 +290,30 @@ controller.post('/updateProfile', async (req, res) => {
         if (userDetails.length > 0) {
 
             //checking user email already exists
-            userSchema.checkEmailAlreadyExists(req.body.email, function (err, email) {
+            userSchema.checkEmailAlreadyExists(req.body.email, function (err, email) {                
+                if (err) { return res.status(def.API_STATUS.CLIENT_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.EMAIL_ALREADY_REGISTERED }); }
+               
+                if(email){
+                    return res.status(def.API_STATUS.CLIENT_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.EMAIL_ALREADY_REGISTERED });
+                }else{
+                    userSchema.updateUserProfile(req.body, userDetails[0].user_id, async function (err, profile) {
+                        if (err) {
+                            return res.status(def.API_STATUS.CLIENT_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.FAILED_TO_SAVED });
+                        }
 
-                if (err) { return res.status(def.API_STATUS.SERVER_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.EMAIL_ALREADY_REGISTERED }); }
 
-                userSchema.updateUserProfile(req.body, userDetails[0].user_id, async function (err, profile) {
-                    if (err) {
-                        return res.status(def.API_STATUS.SERVER_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.FAILED_TO_SAVED });
-                    }
+                        res.status(def.API_STATUS.SUCCESS.OK).send({ profile: profile });
 
 
-                    res.status(def.API_STATUS.SUCCESS.OK).send({ profile: profile });
-
-
-                })
+                    })
+                }    
+                   
 
             });
 
         }
         else {
-            return res.status(def.API_STATUS.SERVER_ERROR.BAD_REQUEST).send({ response: err });
+            return res.status(def.API_STATUS.CLIENT_ERROR.BAD_REQUEST).send({ response: err });
         }
 
     })

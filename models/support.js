@@ -15,7 +15,7 @@ supportSchema.getSupportTickets = function (obj, result) {
     let limit = obj.limit;
     let userId = obj.userId
     sql("SELECT COUNT(*) as totalItem from  fw_support_master where user_id =?", userId, function (err, count) {
-        sql("SELECT * from fw_support_master where user_id=" + userId + " LIMIT " + skip + "," + limit, function (err, res) {
+        sql("SELECT * from fw_support_master where user_id=" + userId + " ORDER BY id desc LIMIT " + skip + "," + limit, function (err, res) {
             if (err) {
                 //console.log(err);              
                 result(err, null);
