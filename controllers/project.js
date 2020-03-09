@@ -258,7 +258,7 @@ controller.post('/updateProject', async (req, res) => {
     let authToken = req.headers['x-auth-token'];
     //Verify User 
     userSchema.fetchUserByAuthToken(authToken, function (err, userDetails) {
-        if (err) { return res.status(def.API_STATUS.SERVER_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.UNABLE_TO_ADD_PROJECT }); }
+        if (err) { return res.status(def.API_STATUS.CLIENT_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.UNABLE_TO_ADD_PROJECT }); }
         if (userDetails.length > 0) {
 
             let lastProjectCost = req.body.lastProjectCost;
@@ -266,7 +266,7 @@ controller.post('/updateProject', async (req, res) => {
 
             // check project cose is greater than available credits
             if (Math.abs(updatedProjectCost) > Math.abs(userDetails[0].account_balance)) {
-                return res.status(def.API_STATUS.SERVER_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.INSUFFICIENT_CREDITS });
+                return res.status(def.API_STATUS.CLIENT_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.INSUFFICIENT_CREDITS });
             } else {
                 let updatedProjectDetails = {
                     project_id: req.body.project_id,
@@ -289,7 +289,7 @@ controller.post('/updateProject', async (req, res) => {
 
 
                 projectSchema.updateProject(updatedProjectDetails, async function (err, updateProject) {
-                    if (err) { return res.status(def.API_STATUS.SERVER_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.UNABLE_TO_UPDATE_PROJECT }); }
+                    if (err) { return res.status(def.API_STATUS.CLIENT_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.UNABLE_TO_UPDATE_PROJECT }); }
 
                     // Update Account Balance of User
                     let updatedAccountBalance = ((Math.abs(userDetails[0].account_balance) + Math.abs(lastProjectCost)) - Math.abs(req.body.project_cost)).toFixed(2);
@@ -297,7 +297,7 @@ controller.post('/updateProject', async (req, res) => {
                     userSchema.updateUserAccountBalance(updatedAccountBalance, userDetails[0].user_id, function (err, userUpdate) {
                         if (err) {
 
-                            return res.status(def.API_STATUS.SERVER_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.UNABLE_TO_UPDATE_PROJECT });
+                            return res.status(def.API_STATUS.CLIENT_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.UNABLE_TO_UPDATE_PROJECT });
                         }
 
                         // Update File Data in project files table
@@ -322,7 +322,7 @@ controller.post('/updateProject', async (req, res) => {
                 });
             }
         } else {
-            return res.status(def.API_STATUS.SERVER_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.UNABLE_TO_UPDATE_PROJECT });
+            return res.status(def.API_STATUS.CLIENT_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.UNABLE_TO_UPDATE_PROJECT });
         }
     });
 });
@@ -338,11 +338,11 @@ controller.post('/cancelProject', async (req, res) => {
     let authToken = req.headers['x-auth-token'];
     //Verify User 
     userSchema.fetchUserByAuthToken(authToken, function (err, userDetails) {
-        if (err) { return res.status(def.API_STATUS.SERVER_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.UNABLE_TO_CANCEL_PROJECT }); }
+        if (err) { return res.status(def.API_STATUS.CLIENT_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.UNABLE_TO_CANCEL_PROJECT }); }
         if (userDetails.length > 0) {
 
             projectSchema.cancelProject(req.body.project_id, async function (err, updateProject) {
-                if (err) { return res.status(def.API_STATUS.SERVER_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.UNABLE_TO_CANCEL_PROJECT }); }
+                if (err) { return res.status(def.API_STATUS.CLIENT_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.UNABLE_TO_CANCEL_PROJECT }); }
 
                 // On Cancel Project Credits will not return (Client Update 9-3-2020)
                 // Update Account Balance of User
@@ -351,7 +351,7 @@ controller.post('/cancelProject', async (req, res) => {
                 userSchema.updateUserAccountBalance(updatedAccountBalance, userDetails[0].user_id, function (err, userUpdate) {
                     if (err) {
 
-                        return res.status(def.API_STATUS.SERVER_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.UNABLE_TO_CANCEL_PROJECT });
+                        return res.status(def.API_STATUS.CLIENT_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.UNABLE_TO_CANCEL_PROJECT });
                     } */
 
                     // Update Project Status in project status table
@@ -391,7 +391,7 @@ controller.post('/cancelProject', async (req, res) => {
             });
 
         } else {
-            return res.status(def.API_STATUS.SERVER_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.UNABLE_TO_CANCEL_PROJECT });
+            return res.status(def.API_STATUS.CLIENT_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.UNABLE_TO_CANCEL_PROJECT });
         }
     });
 });
@@ -407,18 +407,18 @@ controller.post('/updateProjectStatus', async (req, res) => {
     let authToken = req.headers['x-auth-token'];
     //Verify User 
     userSchema.fetchUserByAuthToken(authToken, function (err, userDetails) {
-        if (err) { return res.status(def.API_STATUS.SERVER_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.UNABLE_TO_UPDATE_PROJECT_STATUS }); }
+        if (err) { return res.status(def.API_STATUS.CLIENT_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.UNABLE_TO_UPDATE_PROJECT_STATUS }); }
         if (userDetails.length > 0) {
 
             // Update Account Balance of User
             if (req.body.project_status == "New") {
                 if (req.body.project_cost > userDetails[0].account_balance) {
-                    return res.status(def.API_STATUS.SERVER_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.INSUFFICIENT_CREDITS });
+                    return res.status(def.API_STATUS.CLIENT_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.INSUFFICIENT_CREDITS });
                 }else{
                     let updatedAccountBalance = (userDetails[0].account_balance - req.body.project_cost).toFixed(2);
                     userSchema.updateUserAccountBalance(updatedAccountBalance, userDetails[0].user_id, function (err, userUpdate) {
                         if (err) {
-                            return res.status(def.API_STATUS.SERVER_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.UNABLE_TO_UPDATE_PROJECT_STATUS });
+                            return res.status(def.API_STATUS.CLIENT_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.UNABLE_TO_UPDATE_PROJECT_STATUS });
                         }
 
                         // Send Email to User
@@ -442,7 +442,7 @@ controller.post('/updateProjectStatus', async (req, res) => {
 
 
             projectSchema.updateProjectStatus(req.body.project_id, req.body.project_status, async function (err, updateProject) {
-                if (err) { return res.status(def.API_STATUS.SERVER_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.UNABLE_TO_UPDATE_PROJECT_STATUS }); }
+                if (err) { return res.status(def.API_STATUS.CLIENT_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.UNABLE_TO_UPDATE_PROJECT_STATUS }); }
 
 
                 // Update Project Status in project status table
@@ -485,7 +485,7 @@ controller.post('/updateProjectStatus', async (req, res) => {
             });
 
         } else {
-            return res.status(def.API_STATUS.SERVER_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.UNABLE_TO_UPDATE_PROJECT_STATUS });
+            return res.status(def.API_STATUS.CLIENT_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.UNABLE_TO_UPDATE_PROJECT_STATUS });
         }
     });
 });
@@ -531,7 +531,7 @@ controller.post('/getProjectDetailsById', async (req, res) => {
 
     //Verify User 
     userSchema.fetchUserByAuthToken(authToken, function (err, userDetails) {
-        if (err) { return res.status(def.API_STATUS.SERVER_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.UNABLE_TO_FETCH_DETAILS }); }
+        if (err) { return res.status(def.API_STATUS.CLIENT_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.UNABLE_TO_FETCH_DETAILS }); }
         if (userDetails.length > 0) {
 
             console.log(userDetails);
@@ -597,7 +597,7 @@ controller.post('/getProjectDetailsById', async (req, res) => {
 
             });
         } else {
-            return res.status(def.API_STATUS.SERVER_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.UNABLE_TO_FETCH_DETAILS });
+            return res.status(def.API_STATUS.CLIENT_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.UNABLE_TO_FETCH_DETAILS });
         }
     });
 

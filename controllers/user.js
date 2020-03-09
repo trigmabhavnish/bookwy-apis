@@ -292,8 +292,8 @@ controller.post('/updateProfile', async (req, res) => {
             //checking user email already exists
             userSchema.checkEmailAlreadyExists(req.body.email, function (err, email) {                
                 if (err) { return res.status(def.API_STATUS.CLIENT_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.EMAIL_ALREADY_REGISTERED }); }
-               
-                if(email){
+                console.log(email);
+                if(email.length > 0){
                     return res.status(def.API_STATUS.CLIENT_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.EMAIL_ALREADY_REGISTERED });
                 }else{
                     userSchema.updateUserProfile(req.body, userDetails[0].user_id, async function (err, profile) {

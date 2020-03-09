@@ -86,7 +86,7 @@ controller.post('/getUserCredits', async (req, res) => {
 	let authToken = req.headers['x-auth-token'];
 	//checking user id exists
 	userSchema.fetchUserByAuthToken(authToken, async function (err, user) {
-		if (err) { return res.status(def.API_STATUS.SERVER_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.FAILED_TO_VERIFY }); }
+		if (err) { return res.status(def.API_STATUS.CLIENT_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.FAILED_TO_VERIFY }); }
 
 		// if User ID exist in the system
 		if (user.length > 0) {
@@ -105,7 +105,7 @@ controller.post('/getDashboardContent', async (req, res) => {
 	let authToken = req.headers['x-auth-token'];
 	//checking user id exists
 	userSchema.fetchUserByAuthToken(authToken, async function (err, user) {
-		if (err) { return res.status(def.API_STATUS.SERVER_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.FAILED_TO_VERIFY }); }
+		if (err) { return res.status(def.API_STATUS.CLIENT_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.FAILED_TO_VERIFY }); }
 
 		// if User ID exist in the system
 		if (user.length > 0) {
