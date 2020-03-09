@@ -68,33 +68,39 @@ controller.post('/addNewProject', validate(validateProject), async (req, res) =>
         if (err) { return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.UNABLE_TO_ADD_PROJECT }); }
         if (userDetails.length > 0) {
             // check project cose is greater than available credits
-            if (req.body.project_cost > userDetails[0].account_balance) {
+            /* if (req.body.project_cost > userDetails[0].account_balance) {
                 return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.INSUFFICIENT_CREDITS });
-            } else {
-                let projectDetails = {
-                    project_code: req.body.project_code,
-                    project_name: req.body.project_name,
-                    project_topic: req.body.project_topic,
-                    project_type: req.body.project_type,
-                    quantity: req.body.quantity,
-                    word_count: req.body.word_count,
-                    project_details: req.body.project_details,
-                    additional_resources: req.body.additional_resources,
-                    project_package: req.body.project_package,
-                    project_cost: req.body.project_cost,
-                    choice_of_writers: req.body.choice_of_writers,
-                    writers_career: req.body.writers_career,
-                    writers_age: req.body.writers_age,
-                    writers_location: req.body.writers_location,
-                    project_file: (req.body.project_files.length > 0) ? req.body.project_files[0].file_key : '',
-                    user_id: userDetails[0].user_id
-                };
+            } else { */
 
-                let newProject = new projectSchema(projectDetails);
+            let projectStatus = (req.body.project_cost > userDetails[0].account_balance) ? 'Draft' : 'New';
+            //console.log(projectStatus);    
+            let projectDetails = {
+                project_code: req.body.project_code,
+                project_name: req.body.project_name,
+                project_topic: req.body.project_topic,
+                project_type: req.body.project_type,
+                quantity: req.body.quantity,
+                word_count: req.body.word_count,
+                project_details: req.body.project_details,
+                additional_resources: req.body.additional_resources,
+                project_package: req.body.project_package,
+                project_cost: req.body.project_cost,
+                choice_of_writers: req.body.choice_of_writers,
+                writers_career: req.body.writers_career,
+                writers_age: req.body.writers_age,
+                writers_location: req.body.writers_location,
+                project_status: projectStatus,
+                project_file: (req.body.project_files.length > 0) ? req.body.project_files[0].file_key : '',
+                user_id: userDetails[0].user_id
+            };
 
-                projectSchema.createProject(newProject, async function (err, newProjectId) {
-                    if (err) { return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.UNABLE_TO_ADD_PROJECT }); }
+            let newProject = new projectSchema(projectDetails);
 
+            projectSchema.createProject(newProject, async function (err, newProjectId) {
+                if (err) { return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.UNABLE_TO_ADD_PROJECT }); }
+
+
+                if (projectStatus == 'New') {
                     // Update Account Balance of User
                     let updatedAccountBalance = (userDetails[0].account_balance - req.body.project_cost).toFixed(2);
                     userSchema.updateUserAccountBalance(updatedAccountBalance, userDetails[0].user_id, function (err, userUpdate) {
@@ -160,12 +166,82 @@ controller.post('/addNewProject', validate(validateProject), async (req, res) =>
                         sendMail(mailBody)
                         // Send Email to User
 
+
+                        // Send User Notification
+                        if(userDetails[0].new_project == 'Y'){    
+                            let notificationMsg = msg.RESPONSE.NOTIFICATION_PROJECT_CREATED;    
+                            projectSchema.saveNotification(notificationMsg, userDetails[0].user_id, async function (err, newFileId) { });
+                        }
+                        // Send User Notification
+
                         res.status(def.API_STATUS.SUCCESS.OK).send({ response: msg.RESPONSE.PROJECT_ADDED });
                     });
 
+                } else {
+                    // Project Set To Draft
 
-                });
-            }
+                    // Update File Data in project files table
+                    let fileDetails;
+                    if (req.body.project_files.length > 0) {
+                        fileDetails = {
+                            project_id: newProjectId,
+                            user_id: userDetails[0].user_id,
+                            file_path: req.body.project_files[0].file_path,
+                            file_name: req.body.project_files[0].file_name,
+                            file_key: req.body.project_files[0].file_key,
+                            file_mimetype: req.body.project_files[0].file_mimetype,
+                            file_category: req.body.project_files[0].file_category,
+                        };
+                    } else {
+                        fileDetails = {
+                            project_id: newProjectId,
+                            user_id: userDetails[0].user_id,
+                            file_path: '',
+                            file_name: '',
+                            file_key: '',
+                            file_mimetype: '',
+                            file_category: '',
+                        };
+                    }
+                    let newProjectFiles = new projectFileSchema(fileDetails);
+                    projectFileSchema.addProjectFiles(newProjectFiles, async function (err, newFileId) { });
+                    // Update File Data in project files table
+
+                    // Update Project Status in project status table
+                    let projectStatusDetails = {
+                        project_id: newProjectId,
+                        user_id: userDetails[0].user_id,
+                        project_status: 'Draft',
+                        status_description: 'Project Drafted'
+                    };
+                    let newProjectStatus = new projectStatusSchema(projectStatusDetails);
+                    projectStatusSchema.addProjectStatus(projectStatusDetails, async function (err, newStatusId) { });
+                    // Update Project Status in project status table
+
+                    // Send Email to User
+                    /*const name = userDetails[0].first_name + ' ' + userDetails[0].last_name
+                    const mailBody = {
+                        to: userDetails[0].email,
+                        from: config.get('fromEmail'),
+                        subject: "Project Created",
+                        template_id: config.get('email_templates.project_updates_template'),
+                        dynamic_template_data: {
+                            name: name,
+                            project_name: req.body.project_name,
+                            project_updates: 'Your project has been successfully created'
+                        }
+                    }
+                    sendMail(mailBody) */
+                    // Send Email to User
+
+                    res.status(def.API_STATUS.SUCCESS.OK).send({ response: msg.RESPONSE.PROJECT_DRAFTED });
+
+                }
+
+
+
+            });
+            /* } */
         } else {
             return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.UNABLE_TO_ADD_PROJECT });
         }
@@ -268,14 +344,15 @@ controller.post('/cancelProject', async (req, res) => {
             projectSchema.cancelProject(req.body.project_id, async function (err, updateProject) {
                 if (err) { return res.status(def.API_STATUS.SERVER_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.UNABLE_TO_CANCEL_PROJECT }); }
 
+                // On Cancel Project Credits will not return (Client Update 9-3-2020)
                 // Update Account Balance of User
-                let updatedAccountBalance = (Math.abs(userDetails[0].account_balance) + Math.abs(req.body.project_cost)).toFixed(2);
+                /* let updatedAccountBalance = (Math.abs(userDetails[0].account_balance) + Math.abs(req.body.project_cost)).toFixed(2);
 
                 userSchema.updateUserAccountBalance(updatedAccountBalance, userDetails[0].user_id, function (err, userUpdate) {
                     if (err) {
 
                         return res.status(def.API_STATUS.SERVER_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.UNABLE_TO_CANCEL_PROJECT });
-                    }
+                    } */
 
                     // Update Project Status in project status table
                     let projectStatusDetails = {
@@ -299,7 +376,7 @@ controller.post('/cancelProject', async (req, res) => {
                         dynamic_template_data: {
                             name: name,
                             project_name: updateProject[0].project_name,
-                            project_updates: 'Your project has been successfully cancelled'
+                            project_updates: 'Your project has been successfully cancelled.'
                         }
                     }
                     sendMail(mailBody)
@@ -307,7 +384,8 @@ controller.post('/cancelProject', async (req, res) => {
 
                     // Update File Data in project files table
                     res.status(def.API_STATUS.SUCCESS.OK).send({ response: msg.RESPONSE.PROJECT_CANCELLED });
-                });
+
+               /* }); */
 
 
             });
@@ -332,12 +410,47 @@ controller.post('/updateProjectStatus', async (req, res) => {
         if (err) { return res.status(def.API_STATUS.SERVER_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.UNABLE_TO_UPDATE_PROJECT_STATUS }); }
         if (userDetails.length > 0) {
 
+            // Update Account Balance of User
+            if (req.body.project_status == "New") {
+                if (req.body.project_cost > userDetails[0].account_balance) {
+                    return res.status(def.API_STATUS.SERVER_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.INSUFFICIENT_CREDITS });
+                }else{
+                    let updatedAccountBalance = (userDetails[0].account_balance - req.body.project_cost).toFixed(2);
+                    userSchema.updateUserAccountBalance(updatedAccountBalance, userDetails[0].user_id, function (err, userUpdate) {
+                        if (err) {
+                            return res.status(def.API_STATUS.SERVER_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.UNABLE_TO_UPDATE_PROJECT_STATUS });
+                        }
+
+                        // Send Email to User
+                        const name = userDetails[0].first_name + ' ' + userDetails[0].last_name
+                        const mailBody = {
+                            to: userDetails[0].email,
+                            from: config.get('fromEmail'),
+                            subject: "Project Created",
+                            template_id: config.get('email_templates.project_updates_template'),
+                            dynamic_template_data: {
+                                name: name,
+                                project_name: req.body.project_name,
+                                project_updates: 'Your project has been successfully created.'
+                            }
+                        }
+                        sendMail(mailBody)
+                        // Send Email to User                        
+                    });
+                }    
+            }
+
+
             projectSchema.updateProjectStatus(req.body.project_id, req.body.project_status, async function (err, updateProject) {
                 if (err) { return res.status(def.API_STATUS.SERVER_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.UNABLE_TO_UPDATE_PROJECT_STATUS }); }
 
 
                 // Update Project Status in project status table
                 let statusDescription = "";
+
+                if (req.body.project_status == "New") {
+                    statusDescription = "Project Created."
+                }
                 if (req.body.project_status == "Pause") {
                     statusDescription = "Project Paused."
                 }
@@ -353,6 +466,7 @@ controller.post('/updateProjectStatus', async (req, res) => {
                 if (req.body.project_status == "Revised") {
                     statusDescription = "Project Revised."
                 }
+
 
                 let projectStatusDetails = {
                     project_id: req.body.project_id,
@@ -419,6 +533,8 @@ controller.post('/getProjectDetailsById', async (req, res) => {
     userSchema.fetchUserByAuthToken(authToken, function (err, userDetails) {
         if (err) { return res.status(def.API_STATUS.SERVER_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.UNABLE_TO_FETCH_DETAILS }); }
         if (userDetails.length > 0) {
+
+            console.log(userDetails);
             //get Project Listings Details
 
             let postData = { user_id: userDetails[0].user_id, project_id: req.body.projectId };
@@ -471,7 +587,7 @@ controller.post('/getProjectDetailsById', async (req, res) => {
 
                     // Send Response
                     setTimeout(() => {
-                        res.status(def.API_STATUS.SUCCESS.OK).send({ response: msg.RESPONSE.SUCCESS_FETCH_DETAILS, project_details: projectDetails[0], project_status: projectStatusArray });
+                        res.status(def.API_STATUS.SUCCESS.OK).send({ response: msg.RESPONSE.SUCCESS_FETCH_DETAILS, project_details: projectDetails[0], project_status: projectStatusArray, user_account_balance: userDetails[0].account_balance });
                     }, 1000);
 
 

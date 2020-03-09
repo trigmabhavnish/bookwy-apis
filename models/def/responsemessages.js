@@ -19,8 +19,8 @@ const RESPONSE = {
     UNABLE_TO_UPDATE_PROJECT_STATUS: "Ooops, unable to update project status due to some unknown reason. please try again later.",
     INSUFFICIENT_CREDITS: "You have insufficient credits.",
     FORGOT_PASSWORD_RESPONSE: "We have sent you a mail with password reset instructions.",
-    PROJECT_ADDED: "Project added successfully.",
-    PROJECT_UPDATED: "Project updated successfully.",
+    PROJECT_ADDED: "Project added successfully.",    
+    PROJECT_DRAFTED: "Your project is ready to get started. Please add credits to your account now.",
     PROJECT_CANCELLED: "Project cancelled successfully.",
     PROJECT_STATUS_UPDATED: "Project status updated successfully.",
     FAILED_TO_SEND_EMAIL: "Email failed to send for some unknown reason. Please try again later.",
@@ -32,7 +32,8 @@ const RESPONSE = {
     DOC_REMOVE_SUCCESSFULLY: "Removed successfully.",
     FILE_NOT_FOUND: "File Not Found.",
     UNABLE_TO_FIND_USER:'Inavlid User.',    
-    FAILED_TO_UPDATE:'Unable to update record'
+    FAILED_TO_UPDATE:'Unable to update record',
+    NOTIFICATION_PROJECT_CREATED: 'Your project has been successfully created.'
     
 
 

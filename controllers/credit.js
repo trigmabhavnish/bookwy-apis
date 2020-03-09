@@ -99,9 +99,6 @@ controller.post('/onTransactionComplete', validate(validateTransactionData), asy
     });
 });
 
-
-
-
 controller.post('/transactionListing', async (req, res) => {
 
     // Fetch UserDetails using Auth Token
