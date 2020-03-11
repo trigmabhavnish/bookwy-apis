@@ -127,7 +127,7 @@ controller.post('/loginWithFb', async (req, res) => {
 
         // if Email Already Exists
         if (email.length > 0) {
-            loginWithFb(req,res);
+            loginWithFb(req, res);
             console.log('user caredstedaaaa')
         }
         // Create New User
@@ -136,8 +136,8 @@ controller.post('/loginWithFb', async (req, res) => {
 
 
                 if (err) { return res.status(def.API_STATUS.CLIENT_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.UNABLE_TO_REGISTER }); }
-                 console.log('user caredsted')
-                loginWithFb(req,res);
+                console.log('user caredsted')
+                loginWithFb(req, res);
 
                 // res.status(def.API_STATUS.SUCCESS.OK).send({ response: msg.RESPONSE.SUCCESS_REGISTER });
             });
@@ -147,14 +147,14 @@ controller.post('/loginWithFb', async (req, res) => {
 });
 
 
-function loginWithFb(req,res){
+function loginWithFb(req, res) {
     userSchema.checkUserLogin(req.body.email, async function (err, user) {
         if (err) { return res.status(def.API_STATUS.CLIENT_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.UNABLE_TO_LOGIN }); }
 
         // if Email Exists in the system
         if (user.length > 0) {
-           
-             console.log('the user is',user)
+
+            console.log('the user is', user)
             /* End Validate Password */
 
             const authToken = await generateAuthToken(user[0]); // generate Auth Token
@@ -368,26 +368,40 @@ controller.post('/updateProfile', async (req, res) => {
         if (userDetails.length > 0) {
 
             //checking user email already exists
-            userSchema.checkEmailAlreadyExists(req.body.email, function (err, email) {                
-                if (err) { return res.status(def.API_STATUS.CLIENT_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.EMAIL_ALREADY_REGISTERED }); }
-                console.log(email);
-                if(email.length > 0){
-                    return res.status(def.API_STATUS.CLIENT_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.EMAIL_ALREADY_REGISTERED });
-                }else{
-                    userSchema.updateUserProfile(req.body, userDetails[0].user_id, async function (err, profile) {
-                        if (err) {
-                            return res.status(def.API_STATUS.CLIENT_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.FAILED_TO_SAVED });
-                        }
+            if (req.body.email == userDetails[0].email) {
+                userSchema.updateUserProfile(req.body, userDetails[0].user_id, async function (err, profile) {
+                    if (err) {
+                        return res.status(def.API_STATUS.CLIENT_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.FAILED_TO_SAVED });
+                    }
 
 
-                        res.status(def.API_STATUS.SUCCESS.OK).send({ profile: profile });
+                    res.status(def.API_STATUS.SUCCESS.OK).send({ profile: profile });
 
 
-                    })
-                }    
-                   
+                })
+            } else {
+                userSchema.checkEmailAlreadyExists(req.body.email, function (err, email) {
+                    if (err) { return res.status(def.API_STATUS.CLIENT_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.EMAIL_ALREADY_REGISTERED }); }
+                    //console.log(email);
+                    if (email.length > 0) {
+                        return res.status(def.API_STATUS.CLIENT_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.EMAIL_ALREADY_REGISTERED });
+                    } else {
+                        userSchema.updateUserProfile(req.body, userDetails[0].user_id, async function (err, profile) {
+                            if (err) {
+                                return res.status(def.API_STATUS.CLIENT_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.FAILED_TO_SAVED });
+                            }
 
-            });
+
+                            res.status(def.API_STATUS.SUCCESS.OK).send({ profile: profile });
+
+
+                        })
+                    }
+
+
+                });
+            }
+
 
         }
         else {
