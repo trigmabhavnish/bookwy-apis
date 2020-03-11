@@ -79,7 +79,7 @@ controller.post('/login', validate(validateUserLogin), async (req, res) => {
 
             /* End Validate Password */
 
-            const authToken = await generateAuthToken(user); // generate Auth Token
+            const authToken = await generateAuthToken(user[0]); // generate Auth Token
             const lastLogin = new Date();
 
             // Update Login Details
@@ -112,6 +112,84 @@ controller.post('/login', validate(validateUserLogin), async (req, res) => {
     });
 });
 
+
+
+/**
+ * User Login, signup, Logout
+ */
+controller.post('/loginWithFb', async (req, res) => {
+    var newUser = new userSchema(req.body);
+
+
+    //checking user email already exists
+    userSchema.checkEmailAlreadyExists(req.body.email, function (err, email) {
+        if (err) { return res.status(def.API_STATUS.CLIENT_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.UNABLE_TO_REGISTER }); }
+
+        // if Email Already Exists
+        if (email.length > 0) {
+            loginWithFb(req,res);
+            console.log('user caredstedaaaa')
+        }
+        // Create New User
+        else {
+            userSchema.createUser(newUser, function (err, user) {
+
+
+                if (err) { return res.status(def.API_STATUS.CLIENT_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.UNABLE_TO_REGISTER }); }
+                 console.log('user caredsted')
+                loginWithFb(req,res);
+
+                // res.status(def.API_STATUS.SUCCESS.OK).send({ response: msg.RESPONSE.SUCCESS_REGISTER });
+            });
+        }
+
+    });
+});
+
+
+function loginWithFb(req,res){
+    userSchema.checkUserLogin(req.body.email, async function (err, user) {
+        if (err) { return res.status(def.API_STATUS.CLIENT_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.UNABLE_TO_LOGIN }); }
+
+        // if Email Exists in the system
+        if (user.length > 0) {
+           
+             console.log('the user is',user)
+            /* End Validate Password */
+
+            const authToken = await generateAuthToken(user[0]); // generate Auth Token
+            const lastLogin = new Date();
+
+            // Update Login Details
+            if (user[0].auth_token == "" || user[0].auth_token == null) {
+
+
+                userSchema.updateLoginDetails(user[0].user_id, lastLogin, authToken, function (err, updateUser) {
+
+                    if (err) { return res.status(def.API_STATUS.CLIENT_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.UNABLE_TO_LOGIN }); }
+
+                    // Login Successfully
+                    res.setHeader('x-auth-token', authToken);
+                    res.header('Access-Control-Expose-Headers', 'x-auth-token')
+                    res.status(def.API_STATUS.SUCCESS.OK).send({ response: msg.RESPONSE.LOGGEDIN_SUCCESSFULLY, accountType: user[0].account_type });
+
+                });
+
+            } else {
+                // Login Successfully
+                res.setHeader('x-auth-token', user[0].auth_token);
+                res.header('Access-Control-Expose-Headers', 'x-auth-token')
+
+                res.status(def.API_STATUS.SUCCESS.OK).send({ response: msg.RESPONSE.LOGGEDIN_SUCCESSFULLY, accountType: user[0].account_type });
+            }
+        } else {
+            return res.status(def.API_STATUS.CLIENT_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.INVALID_EMAIL });
+        }
+
+    });
+
+}
+
 controller.post('/forgotPassword', validate(validateEmail), async (req, res) => {
 
     //checking user email already exists
@@ -121,7 +199,7 @@ controller.post('/forgotPassword', validate(validateEmail), async (req, res) => 
         // if Email Exists in the system
         if (user.length > 0) {
 
-            const verifyToken = await generateAuthToken(user); // generate Auth Token
+            const verifyToken = await generateAuthToken(user[0]); // generate Auth Token
 
             // Update Verification String in DB
             userSchema.updateVerificationToken(verifyToken, req.body.email, async function (err, updateVerifyToken) {
@@ -292,8 +370,8 @@ controller.post('/updateProfile', async (req, res) => {
             //checking user email already exists
             userSchema.checkEmailAlreadyExists(req.body.email, function (err, email) {                
                 if (err) { return res.status(def.API_STATUS.CLIENT_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.EMAIL_ALREADY_REGISTERED }); }
-               
-                if(email){
+                console.log(email);
+                if(email.length > 0){
                     return res.status(def.API_STATUS.CLIENT_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.EMAIL_ALREADY_REGISTERED });
                 }else{
                     userSchema.updateUserProfile(req.body, userDetails[0].user_id, async function (err, profile) {
@@ -410,9 +488,9 @@ function generateAuthToken(user) {
         algorithm: "RS256"
     };
     const token = jwt.sign({
-        _id: user[0].user_id,
-        user_name: user[0].user_name,
-        account_type: user[0].account_type,
+        _id: user.user_id,
+        user_name: user.user_name,
+        account_type: user.account_type,
     }, privateKEY, signOptions);
     return token;
 }
