@@ -50,8 +50,7 @@ const fileFilter = (req, file, cb) => {
   }
 }
 
-const upload = multer({
-  fileFilter,
+const upload = multer({  
   limits: { fieldSize: 25 * 1024 * 1024 },
   storage: multerS3({
     acl: 'public-read',

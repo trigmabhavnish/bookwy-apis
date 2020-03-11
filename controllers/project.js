@@ -344,15 +344,15 @@ controller.post('/cancelProject', async (req, res) => {
             projectSchema.cancelProject(req.body.project_id, async function (err, updateProject) {
                 if (err) { return res.status(def.API_STATUS.CLIENT_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.UNABLE_TO_CANCEL_PROJECT }); }
 
-                // On Cancel Project Credits will not return (Client Update 9-3-2020)
+                
                 // Update Account Balance of User
-                /* let updatedAccountBalance = (Math.abs(userDetails[0].account_balance) + Math.abs(req.body.project_cost)).toFixed(2);
+                let updatedAccountBalance = (Math.abs(userDetails[0].account_balance) + Math.abs(req.body.project_cost)).toFixed(2);
 
                 userSchema.updateUserAccountBalance(updatedAccountBalance, userDetails[0].user_id, function (err, userUpdate) {
                     if (err) {
 
                         return res.status(def.API_STATUS.CLIENT_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.UNABLE_TO_CANCEL_PROJECT });
-                    } */
+                    }
 
                     // Update Project Status in project status table
                     let projectStatusDetails = {
@@ -385,7 +385,7 @@ controller.post('/cancelProject', async (req, res) => {
                     // Update File Data in project files table
                     res.status(def.API_STATUS.SUCCESS.OK).send({ response: msg.RESPONSE.PROJECT_CANCELLED });
 
-               /* }); */
+                });
 
 
             });
