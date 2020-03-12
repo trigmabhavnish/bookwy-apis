@@ -33,7 +33,8 @@ const RESPONSE = {
     FILE_NOT_FOUND: "File Not Found.",
     UNABLE_TO_FIND_USER:'Inavlid User.',    
     FAILED_TO_UPDATE:'Unable to update record',
-    NOTIFICATION_PROJECT_CREATED: 'Your project has been successfully created.'
+    NOTIFICATION_PROJECT_CREATED: 'Your project has been created successfully.',
+    NOTIFICATION_PROFILE_UPDATED: 'Your profile has been updated successfully.'
     
 
 

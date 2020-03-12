@@ -294,7 +294,7 @@ userSchema.updateUserAccountBalance = function (updatedAccountBalance, userId, r
             //console.log(err);              
             result(err, null);
         } else {
-            //console.log(res);
+            console.log(res);
             result(null, res);
         }
     });

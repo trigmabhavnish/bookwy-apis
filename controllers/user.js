@@ -21,6 +21,12 @@ const {
     validateResetPassword,
 } = require('../models/user');
 
+const {
+    projectSchema,
+    projectFileSchema,
+    projectStatusSchema,
+    validateProject
+} = require('../models/project');
 
 /**
  * User Login, signup, Logout
@@ -374,6 +380,13 @@ controller.post('/updateProfile', async (req, res) => {
                         return res.status(def.API_STATUS.CLIENT_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.FAILED_TO_SAVED });
                     }
 
+                    // Send User Notification
+                    if (userDetails[0].my_profile == 'Y') {
+                        let notificationMsg = msg.RESPONSE.NOTIFICATION_PROFILE_UPDATED;
+                        projectSchema.saveNotification(notificationMsg, userDetails[0].user_id, async function (err, newFileId) { });
+                    }
+                    // Send User Notification
+
 
                     res.status(def.API_STATUS.SUCCESS.OK).send({ profile: profile });
 
@@ -391,6 +404,13 @@ controller.post('/updateProfile', async (req, res) => {
                                 return res.status(def.API_STATUS.CLIENT_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.FAILED_TO_SAVED });
                             }
 
+
+                            // Send User Notification
+                            if (userDetails[0].my_profile == 'Y') {
+                                let notificationMsg = msg.RESPONSE.NOTIFICATION_PROFILE_UPDATED;
+                                projectSchema.saveNotification(notificationMsg, userDetails[0].user_id, async function (err, newFileId) { });
+                            }
+                            // Send User Notification
 
                             res.status(def.API_STATUS.SUCCESS.OK).send({ profile: profile });
 

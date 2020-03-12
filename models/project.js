@@ -151,7 +151,7 @@ projectSchema.cancelProject = function (project_id, result) {
                     //console.log(err);              
                     result(err, null);
                 } else {
-                    console.log(res);
+                    //console.log(res);
                     result(null, res);
                 }
             });
@@ -250,6 +250,7 @@ const projectStatusSchema = function (status) {
     this.user_id = status.user_id;
     this.project_id = status.project_id;
     this.project_status = status.project_status;
+    this.status_class = status.status_class;
     this.status_date = new Date();
 }
 
