@@ -344,7 +344,7 @@ controller.post('/cancelProject', async (req, res) => {
         if (userDetails.length > 0) {
 
             
-            if (req.body.project_status == 'New') {
+            if (req.body.project_status == 'New' || req.body.project_status == 'Resume') {
                 // Update Account Balance of User
                 let updatedAccountBalance = (Math.abs(userDetails[0].account_balance) + Math.abs(req.body.project_cost)).toFixed(2);
                 

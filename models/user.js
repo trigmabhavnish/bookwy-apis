@@ -334,7 +334,7 @@ userSchema.getNotifications = function (obj, result) {
     // let userId = obj.userId
     let updateQuery = `UPDATE fw_notification_msg SET isread = '1' where user_id = ${obj.user_id}`
     let countQuery = `SELECT COUNT(*) as totalItem from  fw_notification_msg where isread = '0' AND user_id = ${obj.user_id}`;
-    let query = `SELECT *from  fw_notification_msg where user_id= ${obj.user_id} LIMIT ${skip} ,  ${limit}`
+    let query = `SELECT * from  fw_notification_msg where user_id= ${obj.user_id} ORDER BY id DESC LIMIT ${skip} ,  ${limit}`
     sql(updateQuery, function (err, done) {
         sql(countQuery, function (err, count) {
             sql(query, function (err, res) {
