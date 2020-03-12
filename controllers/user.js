@@ -159,8 +159,7 @@ function loginWithFb(req, res) {
 
         // if Email Exists in the system
         if (user.length > 0) {
-
-            console.log('the user is', user)
+           
             /* End Validate Password */
 
             const authToken = await generateAuthToken(user[0]); // generate Auth Token
@@ -518,7 +517,7 @@ function generateAuthToken(user) {
         issuer: i,
         subject: s,
         audience: a,
-        expiresIn: "1h",
+        expiresIn: "30d",
         algorithm: "RS256"
     };
     const token = jwt.sign({
