@@ -15,7 +15,7 @@ feedBackSchema.getFeedBackList = function (obj, result) {
     let limit = obj.limit;
     // let userId = obj.userId
     sql("SELECT COUNT(*) as totalItem from  fw_feedback where status='Y'", function (err, count) {
-        sql("SELECT fw_user.user_id, fw_user.user_name, fw_user.profile_pic,fw_feedback.overall_rate,fw_feedback.project_id, fw_feedback.user_id,fw_feedback.feed_desc,fw_feedback.feed_con,fw_feedback.feed_date,fw_feedback.status FROM fw_feedback INNER JOIN fw_user ON fw_feedback.user_id = fw_user.user_id where fw_feedback.status='Y' ORDER BY fw_feedback.feed_date DESC LIMIT " + skip + "," + limit, function (err, res) {
+        sql("SELECT fw_user.user_id, fw_user.user_name, fw_user.first_name, fw_user.profile_pic,fw_feedback.overall_rate,fw_feedback.project_id, fw_feedback.user_id,fw_feedback.feed_desc,fw_feedback.feed_con,fw_feedback.feed_date,fw_feedback.status FROM fw_feedback INNER JOIN fw_user ON fw_feedback.user_id = fw_user.user_id where fw_feedback.status='Y' ORDER BY fw_feedback.feed_date DESC LIMIT " + skip + "," + limit, function (err, res) {
             if (err) {
                 //console.log(err);              
                 result(err, null);
@@ -30,7 +30,7 @@ feedBackSchema.getFeedBackList = function (obj, result) {
 
 feedBackSchema.getFeedBackDetails = function (obj, result) {
     // let userId = obj.userId
-    sql("SELECT fw_feedback.project_id,fw_feedback.user_id,fw_feedback.status,fw_feedback.feed_desc,fw_feedback.feed_con,fw_feedback.feed_date,fw_feedback.overall_rate,fw_user.user_id,fw_user.user_name,fw_project.id,fw_project.project_name FROM fw_feedback INNER JOIN fw_user ON fw_feedback.user_id=fw_user.user_id INNER JOIN fw_project ON fw_feedback.project_id=fw_project.id where fw_feedback.user_id = ? AND fw_feedback.project_id = ?", [obj.userId, obj.projectId], function (err, feedback) {
+    sql("SELECT fw_feedback.project_id,fw_feedback.user_id,fw_feedback.status,fw_feedback.feed_desc,fw_feedback.feed_con,fw_feedback.feed_date,fw_feedback.overall_rate,fw_user.user_id,fw_user.user_name, fw_user.first_name, fw_user.profile_pic,fw_project.id,fw_project.project_name FROM fw_feedback INNER JOIN fw_user ON fw_feedback.user_id=fw_user.user_id INNER JOIN fw_project ON fw_feedback.project_id=fw_project.id where fw_feedback.user_id = ? AND fw_feedback.project_id = ?", [obj.userId, obj.projectId], function (err, feedback) {
         sql("SELECT * from fw_allrate where user_id = ? AND project_id = ?", [obj.userId, obj.projectId], function (err, allrate) {
             if (err) {
                 //console.log(err);              

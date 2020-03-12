@@ -16,11 +16,17 @@ const {
 const {
     userSchema
 } = require('../models/user');
+const {
+    projectSchema,
+    projectFileSchema,
+    projectStatusSchema,
+    validateProject
+} = require('../models/project');
 /**
  * make payment 
  */
 controller.post('/make-payment', async (req, res) => {
-    console.log('the', config.get('twocheckout.sellerId'), config.get('twocheckout.privateKey'))
+    //console.log('the', config.get('twocheckout.sellerId'), config.get('twocheckout.privateKey'))
 
     var tco = new Twocheckout({
         sellerId: config.get('twocheckout.sellerId'),                                  // Seller ID, required for all non Admin API bindings 
@@ -53,7 +59,7 @@ controller.post('/make-payment', async (req, res) => {
                     "phoneNumber": "5555555555"
                 }
             };
-            console.log('hi', params)
+            //console.log('hi', params)
             tco.checkout.authorize(params, function (error, data) {
                 if (error) {
                     return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: error.message });
@@ -70,6 +76,14 @@ controller.post('/make-payment', async (req, res) => {
                                 creditSchema.addCreditsByTwoCheckout(userDetails[0].user_id, body, function (err, result) {
                                     if (err) { return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.FAILED_TO_SAVED }); }
                                     else {
+
+                                        // Send User Notification
+                                        if (userDetails[0].new_payment == 'Y') {
+                                            let notificationMsg = body.credits +" credits has been added successfully.";
+                                            projectSchema.saveNotification(notificationMsg, userDetails[0].user_id, async function (err, newFileId) { });
+                                        }
+                                        // Send User Notification
+
                                         res.status(def.API_STATUS.SUCCESS.OK).send({ result: result });
                                     }
                                 })

@@ -21,6 +21,13 @@ const {
     userSchema
 } = require('../models/user');
 
+const {
+    projectSchema,
+    projectFileSchema,
+    projectStatusSchema,
+    validateProject
+} = require('../models/project');
+
 
 controller.post('/checkCouponCodeExist', async (req, res) => {
 
@@ -84,6 +91,12 @@ controller.post('/onTransactionComplete', validate(validateTransactionData), asy
                     sendMail(mailBody)
                     // Send Email to User */
 
+                    // Send User Notification
+                    if (userDetails[0].new_payment == 'Y') {
+                        let notificationMsg = req.body.qty +" credits has been added successfully.";
+                        projectSchema.saveNotification(notificationMsg, userDetails[0].user_id, async function (err, newFileId) { });
+                    }
+                    // Send User Notification
 
                     res.status(def.API_STATUS.SUCCESS.OK).send({ response: msg.RESPONSE.CREDITS_ADDED });
                 });

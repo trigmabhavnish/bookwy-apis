@@ -18,6 +18,7 @@ const userSchema = function (user) {
     this.password = user.password;
     this.director_id = user.director_id;
     this.status = user.status;
+    this.company_name = user.company_name;
     this.reg_date = new Date();
     /*this.last_login = "0000-00-00 00:00:00";
     this.account_balance = null;
@@ -293,7 +294,7 @@ userSchema.updateUserAccountBalance = function (updatedAccountBalance, userId, r
             //console.log(err);              
             result(err, null);
         } else {
-            //console.log(res);
+            console.log(res);
             result(null, res);
         }
     });
@@ -357,7 +358,7 @@ const userJoiSchema = {
     email: Joi.string().trim().email().required(),
     // password is required
     // password must have minimum 10 and maximum 50 characters
-    password: Joi.string().trim().min(10).max(50).required(),
+    password: Joi.string().trim().min(8).max(50).required(),
     confirm_password: Joi.any().valid(Joi.ref('password')).options({ language: { any: { allowOnly: "and Password don't match" } } }),
     director_id: Joi.number().required(),
     status: Joi.string().valid('Y', 'N').required(),

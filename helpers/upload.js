@@ -70,7 +70,7 @@ const upload = multer({
 		else if (file.mimetype == "text/csv") extension = "csv";
 		else if (file.mimetype == "application/vnd.ms-excel") extension = "xls";
 		else if (file.mimetype == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet") extension = "xlsx";		
-		else if (file.mimetype == "application/zip") extension = "zip";
+		else if (file.mimetype == "application/zip" || file.mimetype == "application/x-zip-compressed") extension = "zip";
 		else if (file.mimetype == "application/x-rar-compressed" || file.mimetype == "application/vnd.rar"  || file.mimetype == "application/octet-stream") extension = "rar";
 		else if (file.mimetype == "text/plain") extension = "txt";
 		

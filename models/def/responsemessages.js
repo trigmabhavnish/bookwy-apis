@@ -24,7 +24,7 @@ const RESPONSE = {
     PROJECT_CANCELLED: "Project cancelled successfully.",
     PROJECT_STATUS_UPDATED: "Project status updated successfully.",
     FAILED_TO_SEND_EMAIL: "Email failed to send for some unknown reason. Please try again later.",
-    FAILED_TO_VERIFY: "Token expired or Failed to verify your account. Please try again.",
+    FAILED_TO_VERIFY: "Token Expired",
     PASSWORD_UPDATED: "Password updated successfully.",
     PASSWORD_UPDATE_ERROR: "Failed to update your password. Please try again later.",
     FAILED_TO_UPLOAD_DOC: "Ooops, unable to upload your document. please try again later.",
@@ -33,7 +33,8 @@ const RESPONSE = {
     FILE_NOT_FOUND: "File Not Found.",
     UNABLE_TO_FIND_USER:'Inavlid User.',    
     FAILED_TO_UPDATE:'Unable to update record',
-    NOTIFICATION_PROJECT_CREATED: 'Your project has been successfully created.'
+    NOTIFICATION_PROJECT_CREATED: 'Your project has been created successfully.',
+    NOTIFICATION_PROFILE_UPDATED: 'Your profile has been updated successfully.'
     
 
 

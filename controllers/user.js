@@ -21,6 +21,12 @@ const {
     validateResetPassword,
 } = require('../models/user');
 
+const {
+    projectSchema,
+    projectFileSchema,
+    projectStatusSchema,
+    validateProject
+} = require('../models/project');
 
 /**
  * User Login, signup, Logout
@@ -153,8 +159,7 @@ function loginWithFb(req, res) {
 
         // if Email Exists in the system
         if (user.length > 0) {
-
-            console.log('the user is', user)
+           
             /* End Validate Password */
 
             const authToken = await generateAuthToken(user[0]); // generate Auth Token
@@ -374,6 +379,13 @@ controller.post('/updateProfile', async (req, res) => {
                         return res.status(def.API_STATUS.CLIENT_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.FAILED_TO_SAVED });
                     }
 
+                    // Send User Notification
+                    if (userDetails[0].my_profile == 'Y') {
+                        let notificationMsg = msg.RESPONSE.NOTIFICATION_PROFILE_UPDATED;
+                        projectSchema.saveNotification(notificationMsg, userDetails[0].user_id, async function (err, newFileId) { });
+                    }
+                    // Send User Notification
+
 
                     res.status(def.API_STATUS.SUCCESS.OK).send({ profile: profile });
 
@@ -391,6 +403,13 @@ controller.post('/updateProfile', async (req, res) => {
                                 return res.status(def.API_STATUS.CLIENT_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.FAILED_TO_SAVED });
                             }
 
+
+                            // Send User Notification
+                            if (userDetails[0].my_profile == 'Y') {
+                                let notificationMsg = msg.RESPONSE.NOTIFICATION_PROFILE_UPDATED;
+                                projectSchema.saveNotification(notificationMsg, userDetails[0].user_id, async function (err, newFileId) { });
+                            }
+                            // Send User Notification
 
                             res.status(def.API_STATUS.SUCCESS.OK).send({ profile: profile });
 
@@ -498,7 +517,7 @@ function generateAuthToken(user) {
         issuer: i,
         subject: s,
         audience: a,
-        expiresIn: "1h",
+        expiresIn: "30d",
         algorithm: "RS256"
     };
     const token = jwt.sign({
