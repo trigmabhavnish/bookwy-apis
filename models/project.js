@@ -183,7 +183,7 @@ projectSchema.getDashboardContent = function (user_id, result) {
     sql("SELECT (SELECT COUNT(*) as np from fw_project where project_status = 'New' and user_id=" + user_id + ") as np, (SELECT COUNT(*) as ap from fw_project where project_status IN ('Revised', 'Pending', 'Resume') and user_id=" + user_id + ") as ap, (SELECT COUNT(*) as cp from fw_project where project_status = 'Complete' and user_id=" + user_id + ") as cp FROM fw_project WHERE user_id = " + user_id, function (err, projectCount) {
 
         // get Latest Project
-        sql("SELECT * from fw_project where user_id=" + user_id + " ORDER BY id DESC LIMIT 1", function (err, latestProject) {
+        sql("SELECT fp.*, fpt.project_type_name from fw_project as fp INNER JOIN fw_project_type as fpt ON fp.project_type_id = fpt.id where fp.user_id=" + user_id + " ORDER BY fp.id DESC LIMIT 1", function (err, latestProject) {
 
             // get Latest Support
             sql("SELECT * from fw_support_master where user_id=" + user_id + " ORDER BY id DESC LIMIT 1", function (err, latestSupport) {
