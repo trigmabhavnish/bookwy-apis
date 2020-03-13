@@ -396,7 +396,7 @@ function validateResetPassword(resetData) {
 
     // define the validation schema
     let schema = Joi.object().keys({
-        password: Joi.string().trim().min(10).max(50).required(),
+        password: Joi.string().trim().min(8).max(50).required(),
         confirm_password: Joi.any().valid(Joi.ref('password')).options({ language: { any: { allowOnly: "and Password don't match" } } }),
         user_id: Joi.number().required()
 

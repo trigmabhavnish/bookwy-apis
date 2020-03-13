@@ -264,10 +264,11 @@ controller.post('/updateProject', async (req, res) => {
         if (userDetails.length > 0) {
 
             let lastProjectCost = req.body.lastProjectCost;
+            let lastProjectStatus = req.body.lastProjectStatus;
             let updatedProjectCost = lastProjectCost - req.body.project_cost;
 
             // check project cose is greater than available credits
-            if (Math.abs(updatedProjectCost) > Math.abs(userDetails[0].account_balance)) {
+            if (Math.abs(req.body.project_cost) > Math.abs(userDetails[0].account_balance)) {
                 return res.status(def.API_STATUS.CLIENT_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.INSUFFICIENT_CREDITS });
             } else {
                 let updatedProjectDetails = {
@@ -294,7 +295,28 @@ controller.post('/updateProject', async (req, res) => {
                     if (err) { return res.status(def.API_STATUS.CLIENT_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.UNABLE_TO_UPDATE_PROJECT }); }
 
                     // Update Account Balance of User
-                    let updatedAccountBalance = ((Math.abs(userDetails[0].account_balance) + Math.abs(lastProjectCost)) - Math.abs(req.body.project_cost)).toFixed(2);
+                    let updatedAccountBalance;
+                    if(lastProjectStatus == "Draft"){
+                        updatedAccountBalance = (Math.abs(userDetails[0].account_balance) - Math.abs(req.body.project_cost)).toFixed(2);
+
+
+                        // Update Project Status in project status table
+                        let projectStatusDetails = {
+                            project_id: req.body.project_id,
+                            user_id: userDetails[0].user_id,
+                            project_status: 'New',
+                            status_class: 'new__status',
+                            status_description: 'Project Created.'
+                        };
+
+                        let newProjectStatus = new projectStatusSchema(projectStatusDetails);
+                        projectStatusSchema.addProjectStatus(projectStatusDetails, async function (err, newStatusId) { });
+                        // Update Project Status in project status table
+
+                    }else{
+                        updatedAccountBalance = ((Math.abs(userDetails[0].account_balance) + Math.abs(lastProjectCost)) - Math.abs(req.body.project_cost)).toFixed(2);
+                    }
+                    
 
                     userSchema.updateUserAccountBalance(updatedAccountBalance, userDetails[0].user_id, function (err, userUpdate) {
                         if (err) {
@@ -344,7 +366,7 @@ controller.post('/cancelProject', async (req, res) => {
         if (userDetails.length > 0) {
 
             
-            if (req.body.project_status == 'New' || req.body.project_status == 'Resume') {
+            if (req.body.project_status == 'New' || req.body.project_status == 'Resume' || req.body.project_status == 'Pause') {
                 // Update Account Balance of User
                 let updatedAccountBalance = (Math.abs(userDetails[0].account_balance) + Math.abs(req.body.project_cost)).toFixed(2);
                 
