@@ -537,7 +537,7 @@ controller.post('/updateProjectStatus', async (req, res) => {
                 }
                 if (req.body.project_status == "Revised") {
                     statusDescription = "Project Revised."
-                    classStatus = "revise__status";
+                    classStatus = "revised__status";
                 }
 
 
