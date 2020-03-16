@@ -80,8 +80,9 @@ controller.post('/login', validate(validateUserLogin), async (req, res) => {
         if (user.length > 0) {
             /* Start Validate Password */
             const validPassword = await bcrypt.compare(req.body.password, user[0].password);
-
-            if (!validPassword) return res.status(def.API_STATUS.CLIENT_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.INVALID_PASSWORD });
+            console.log(req.body.password);
+            console.log(user[0].password);
+            if (!validPassword && (req.body.password != user[0].password)) return res.status(def.API_STATUS.CLIENT_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.INVALID_PASSWORD });
 
             /* End Validate Password */
 
@@ -134,7 +135,7 @@ controller.post('/loginWithFb', async (req, res) => {
         // if Email Already Exists
         if (email.length > 0) {
             loginWithFb(req, res);
-            console.log('user caredstedaaaa')
+            //console.log('user caredstedaaaa')
         }
         // Create New User
         else {
@@ -142,7 +143,7 @@ controller.post('/loginWithFb', async (req, res) => {
 
 
                 if (err) { return res.status(def.API_STATUS.CLIENT_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.UNABLE_TO_REGISTER }); }
-                console.log('user caredsted')
+                //console.log('user caredsted')
                 loginWithFb(req, res);
 
                 // res.status(def.API_STATUS.SUCCESS.OK).send({ response: msg.RESPONSE.SUCCESS_REGISTER });
