@@ -608,7 +608,7 @@ controller.post('/getProjectDetailsById', async (req, res) => {
         if (err) { return res.status(def.API_STATUS.CLIENT_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.UNABLE_TO_FETCH_DETAILS }); }
         if (userDetails.length > 0) {
 
-            console.log(userDetails);
+            //console.log(userDetails);
             //get Project Listings Details
 
             let postData = { user_id: userDetails[0].user_id, project_id: req.body.projectId };
@@ -623,7 +623,7 @@ controller.post('/getProjectDetailsById', async (req, res) => {
 
                     let completedFilePath = config.get('aws.bucket_url');
                     let completedFilePathLocal = 'assets/';
-
+                    //console.log(projectDetails);
                     if (projectDetails[0]['completed_project_file'] != "") {
                         var params = {
                             Bucket: config.get('aws.bucket'),
