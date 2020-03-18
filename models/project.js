@@ -109,13 +109,22 @@ projectSchema.getProjectDetailsById = function (obj, result) {
     let project_id = obj.project_id;
     let user_id = obj.user_id
 
-    sql("Select fp.*, fpf.file_name, fpf.file_category, fpf.file_path, fpf.file_key, fpf.file_mimetype, fpt.project_type_name from fw_project as fp INNER JOIN fw_project_files as fpf ON fp.id = fpf.project_id INNER JOIN fw_project_type as fpt ON fp.project_type_id = fpt.id where fp.user_id = ? AND fp.id = ?", [user_id, project_id], function (err, res) {
+    sql("Select fp.*, fpt.project_type_name from fw_project as fp INNER JOIN fw_project_type as fpt ON fp.project_type_id = fpt.id where fp.user_id = ? AND fp.id = ?", [user_id, project_id], function (err, projectDetails) {
         if (err) {
             //console.log(err);              
             result(err, null);
         } else {
-            //console.log(res);
-            result(null, res);
+
+            // get Latest Project
+            sql("SELECT fpf.file_name, fpf.file_category, fpf.file_path, fpf.file_key, fpf.file_mimetype from fw_project_files as fpf where fpf.project_id=" + project_id, function (err, projectFiles) {
+                if(err){
+                    result(err, null);
+                }else{
+                    result(null, { projectDetails: projectDetails, projectFiles: projectFiles });
+                }
+            })
+
+            
         }
     });
 

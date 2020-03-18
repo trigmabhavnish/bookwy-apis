@@ -174,13 +174,14 @@ controller.post('/getTicketDetails', async (req, res) => {
 
                                         let completedFilePath = config.get('aws.bucket_url');
                                         let completedFilePathLocal = 'assets/';
-
+                                        console.log(completedFilePath);
                                         var params = {
                                             Bucket: config.get('aws.bucket'),
                                             Key: element.support_file
                                         };
 
                                         s3.headObject(params, function (err, metadata) {
+                                            console.log('eer', err);
                                             if (err && err.code === 'NotFound') {
                                                 // Local File Path  
                                                 element.support_file = completedFilePathLocal + element.support_file;
@@ -201,7 +202,7 @@ controller.post('/getTicketDetails', async (req, res) => {
 
                             setTimeout(() => {
                                 res.status(def.API_STATUS.SUCCESS.OK).send(responseObj);
-                            }, 1000);
+                            }, 2000);
 
                         })
                     }

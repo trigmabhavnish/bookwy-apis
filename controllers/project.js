@@ -615,7 +615,10 @@ controller.post('/getProjectDetailsById', async (req, res) => {
             //console.log(postData);
             projectSchema.getProjectDetailsById(postData, async function (err, projectDetails) {
                 if (err) { return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.UNABLE_TO_FETCH_DETAILS }); }
+                
+                const mergeProjectDetails = Object.assign(projectDetails.projectDetails[0],projectDetails.projectFiles[0]);
 
+                
                 let projectStatusArray = [];
                 await projectStatusSchema.getProjectStatusById(req.body.projectId, async function (err, projectStatus) {
 
@@ -623,45 +626,46 @@ controller.post('/getProjectDetailsById', async (req, res) => {
 
                     let completedFilePath = config.get('aws.bucket_url');
                     let completedFilePathLocal = 'assets/';
-                    //console.log(projectDetails);
-                    if (projectDetails[0]['completed_project_file'] != "") {
+
+                    
+                    if (mergeProjectDetails.completed_project_file != '') {
                         var params = {
                             Bucket: config.get('aws.bucket'),
-                            Key: projectDetails[0]['completed_project_file']
+                            Key: mergeProjectDetails.completed_project_file
                         };
 
                         s3.headObject(params, function (err, metadata) {
                             if (err && err.code === 'NotFound') {
                                 // Local File Path  
-                                projectDetails[0]['completed_project_file'] = completedFilePathLocal + projectDetails[0]['completed_project_file'];
+                                mergeProjectDetails.completed_project_file = completedFilePathLocal + mergeProjectDetails.completed_project_file;
                             } else {
                                 // S3 File Path
-                                projectDetails[0]['completed_project_file'] = completedFilePath + projectDetails[0]['completed_project_file'];
+                                mergeProjectDetails.completed_project_file = completedFilePath + mergeProjectDetails.completed_project_file;
                             }
                         });
 
                     }
 
-                    if (projectDetails[0]['project_file'] != "") {
+                    if (mergeProjectDetails.project_file != "") {
 
                         var params = {
                             Bucket: config.get('aws.bucket'),
-                            Key: projectDetails[0]['project_file']
+                            Key: mergeProjectDetails.project_file
                         };
                         s3.headObject(params, function (err, metadata) {
                             if (err && err.code === 'NotFound') {
                                 // Local File Path  
-                                projectDetails[0]['project_file'] = completedFilePathLocal + projectDetails[0]['project_file'];
+                                mergeProjectDetails.project_file = completedFilePathLocal + mergeProjectDetails.project_file;
                             } else {
                                 // S3 File Path
-                                projectDetails[0]['project_file'] = completedFilePath + projectDetails[0]['project_file'];
+                                mergeProjectDetails.project_file = completedFilePath + mergeProjectDetails.project_file;
                             }
                         });
                     }
 
                     // Send Response
                     setTimeout(() => {
-                        res.status(def.API_STATUS.SUCCESS.OK).send({ response: msg.RESPONSE.SUCCESS_FETCH_DETAILS, project_details: projectDetails[0], project_status: projectStatusArray, user_account_balance: userDetails[0].account_balance });
+                        res.status(def.API_STATUS.SUCCESS.OK).send({ response: msg.RESPONSE.SUCCESS_FETCH_DETAILS, project_details: mergeProjectDetails, project_status: projectStatusArray, user_account_balance: userDetails[0].account_balance });
                     }, 2000);
 
 
