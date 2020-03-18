@@ -28,6 +28,23 @@ const {
     validateProject
 } = require('../models/project');
 
+
+const aws = require('aws-sdk');
+aws.config.update({
+    // Your SECRET ACCESS KEY from AWS should go here,
+    // Never share it!
+    // Setup Env Variable, e.g: process.env.SECRET_ACCESS_KEY
+    secretAccessKey: config.get('aws.secretKey'),
+    // Not working key, Your ACCESS KEY ID from AWS should go here,
+    // Never share it!
+    // Setup Env Variable, e.g: process.env.ACCESS_KEY_ID
+    accessKeyId: config.get('aws.accessKey'),
+    region: config.get('aws.region'), // region of your bucket
+});
+
+const s3 = new aws.S3();
+
+
 /**
  * User Login, signup, Logout
  */
@@ -160,7 +177,7 @@ function loginWithFb(req, res) {
 
         // if Email Exists in the system
         if (user.length > 0) {
-           
+
             /* End Validate Password */
 
             const authToken = await generateAuthToken(user[0]); // generate Auth Token
@@ -322,10 +339,41 @@ controller.get('/getProfile', async (req, res) => {
                     return res.status(def.API_STATUS.CLIENT_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.FAILED_TO_SAVED });
                 }
 
+
+
+
+
                 userSchema.fetchUserSettingById(userDetails[0].user_id, async function (err, settings) {
                     if (err) { return res.status(def.API_STATUS.CLIENT_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.FAILED_TO_SAVED }); }
                     else {
-                        res.status(def.API_STATUS.SUCCESS.OK).send({ profile: profile, settings: settings });
+
+                        let profilePic = profile[0].profile_pic;
+                        //console.log('hello', profile[0].profile_pic)
+                        let completedFilePath = config.get('aws.bucket_url');
+                        let completedFilePathLocal = 'assets/';
+                        if (profilePic != "") {
+                            var params = {
+                                Bucket: config.get('aws.bucket'),
+                                Key: profilePic
+                            };
+
+                            s3.headObject(params, function (err, metadata) {
+                                //console.log('eer', err);
+                                if (err && err.code === 'NotFound') {
+                                    // Local File Path  
+                                    profile[0].profile_pic = completedFilePathLocal + profilePic;
+                                } else {
+                                    // S3 File Path
+                                    profile[0].profile_pic = completedFilePath + profilePic;
+                                }
+                            });
+
+                        }
+
+                        setTimeout(() => {
+                            //console.log(profile);
+                            res.status(def.API_STATUS.SUCCESS.OK).send({ profile: profile, settings: settings });
+                        }, 2000);
                     }
                 })
 

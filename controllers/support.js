@@ -174,7 +174,7 @@ controller.post('/getTicketDetails', async (req, res) => {
 
                                         let completedFilePath = config.get('aws.bucket_url');
                                         let completedFilePathLocal = 'assets/';
-                                        console.log(completedFilePath);
+                                        
                                         var params = {
                                             Bucket: config.get('aws.bucket'),
                                             Key: element.support_file

@@ -37,6 +37,7 @@ feedBackSchema.getFeedBackDetails = function (obj, result) {
                 result(err, null);
             } else {
                 //console.log(res);
+                //console.log(feedback);
                 result(null, { feedback: { feedback, allrate } });
             }
         });
