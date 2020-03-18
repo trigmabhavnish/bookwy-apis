@@ -125,7 +125,7 @@ userSchema.updateUserProfile = async function (body, user_id, result) {
         const hashPassword = await bcrypt.hash(body.password, await bcrypt.genSalt(10));
         updatePasswordToo = ", password = '"+hashPassword+"'";
     }
-    console.log(body);
+    //console.log(body);
     let updateProfileQuery = `UPDATE fw_user SET 
                                 profile_pic = '${body.profile_pic}',
                                 company_name = '${body.company_name}',
