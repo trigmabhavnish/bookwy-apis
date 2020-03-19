@@ -40,7 +40,28 @@ controller.post('/getSupportTickets', async (req, res) => {
         if (userDetails.length > 0) {
             supportSchema.getDirector(userDetails[0].director_id, async function (err, director) {
 
+                let profilePic = userDetails[0].profile_pic;
+                //console.log('hello', profile[0].profile_pic)
+                let completedFilePath = config.get('aws.bucket_url');
+                let completedFilePathLocal = 'assets/';
+                if (profilePic != "") {
+                    var params = {
+                        Bucket: config.get('aws.bucket'),
+                        Key: profilePic
+                    };
 
+                    s3.headObject(params, function (err, metadata) {
+                        //console.log('eer', err);
+                        if (err && err.code === 'NotFound') {
+                            // Local File Path  
+                            userDetails[0].profile_pic = completedFilePathLocal + profilePic;
+                        } else {
+                            // S3 File Path
+                            userDetails[0].profile_pic = completedFilePath + profilePic;
+                        }
+                    });
+
+                }
 
                 supportSchema.getSupportTickets({ userId: userDetails[0].user_id, skip: skip, limit: limit }, async function (err, resp) {
                     if (err) { return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: err }); }
@@ -174,14 +195,14 @@ controller.post('/getTicketDetails', async (req, res) => {
 
                                         let completedFilePath = config.get('aws.bucket_url');
                                         let completedFilePathLocal = 'assets/';
-                                        
+
                                         var params = {
                                             Bucket: config.get('aws.bucket'),
                                             Key: element.support_file
                                         };
 
                                         s3.headObject(params, function (err, metadata) {
-                                            console.log('eer', err);
+
                                             if (err && err.code === 'NotFound') {
                                                 // Local File Path  
                                                 element.support_file = completedFilePathLocal + element.support_file;
