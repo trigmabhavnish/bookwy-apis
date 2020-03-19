@@ -151,19 +151,16 @@ controller.post('/loginWithFb', async (req, res) => {
 
         // if Email Already Exists
         if (email.length > 0) {
-            loginWithFb(req, res);
-            //console.log('user caredstedaaaa')
+            loginWithFb(req, res);            
         }
         // Create New User
         else {
             userSchema.createUser(newUser, function (err, user) {
 
-
                 if (err) { return res.status(def.API_STATUS.CLIENT_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.UNABLE_TO_REGISTER }); }
-                //console.log('user caredsted')
-                loginWithFb(req, res);
 
-                // res.status(def.API_STATUS.SUCCESS.OK).send({ response: msg.RESPONSE.SUCCESS_REGISTER });
+                loginWithFb(req, res);
+                
             });
         }
 
