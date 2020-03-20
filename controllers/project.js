@@ -161,7 +161,7 @@ controller.post('/addNewProject', validate(validateProject), async (req, res) =>
                             dynamic_template_data: {
                                 name: name,
                                 project_name: req.body.project_name,
-                                project_updates: 'Your project has been successfully created'
+                                project_updates: 'You have just launched project'+ req.body.project_name +' is ready.'
                             }
                         }
                         sendMail(mailBody)
