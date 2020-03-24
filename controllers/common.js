@@ -149,6 +149,33 @@ controller.post('/getDashboardContent', async (req, res) => {
 				}
 
 
+				if (dashboardContent.latestFeedbacks.length > 0) {
+
+					dashboardContent.latestFeedbacks.forEach((element) => {
+						let completedFilePath = config.get('aws.bucket_url');
+						let completedFilePathLocal = 'assets/';
+						if (element.profile_pic != "") {
+							var params = {
+								Bucket: config.get('aws.bucket'),
+								Key: element.profile_pic
+							};
+		
+							s3.headObject(params, function (err, metadata) {
+								//console.log('eer', err);
+								if (err && err.code === 'NotFound') {
+									// Local File Path  
+									element.profile_pic = completedFilePathLocal + element.profile_pic;
+								} else {
+									// S3 File Path
+									element.profile_pic = completedFilePath + element.profile_pic;
+								}
+							});
+		
+						}
+					});
+				}
+
+
 				let show_name = (user[0].first_name) ? (user[0].first_name + ' ' + (user[0].last_name)) : user[0].user_name;
 
 				setTimeout(() => {
@@ -162,7 +189,7 @@ controller.post('/getDashboardContent', async (req, res) => {
 						projectCount: (dashboardContent.projectCount.length > 0) ? dashboardContent.projectCount[0] : {}
 					});
 
-				}, 1000)
+				}, 3000)
 			});
 
 
