@@ -161,7 +161,7 @@ controller.post('/addNewProject', validate(validateProject), async (req, res) =>
                             dynamic_template_data: {
                                 name: name,
                                 project_name: req.body.project_name,
-                                project_updates: 'You have just launched project'+ req.body.project_name +' is ready.'
+                                project_updates: 'You have just launched project: ' + req.body.project_name
                             }
                         }
                         sendMail(mailBody)
@@ -296,7 +296,7 @@ controller.post('/updateProject', async (req, res) => {
 
                     // Update Account Balance of User
                     let updatedAccountBalance;
-                    if(lastProjectStatus == "Draft"){
+                    if (lastProjectStatus == "Draft") {
                         updatedAccountBalance = (Math.abs(userDetails[0].account_balance) - Math.abs(req.body.project_cost)).toFixed(2);
 
 
@@ -313,10 +313,10 @@ controller.post('/updateProject', async (req, res) => {
                         projectStatusSchema.addProjectStatus(projectStatusDetails, async function (err, newStatusId) { });
                         // Update Project Status in project status table
 
-                    }else{
+                    } else {
                         updatedAccountBalance = ((Math.abs(userDetails[0].account_balance) + Math.abs(lastProjectCost)) - Math.abs(req.body.project_cost)).toFixed(2);
                     }
-                    
+
 
                     userSchema.updateUserAccountBalance(updatedAccountBalance, userDetails[0].user_id, function (err, userUpdate) {
                         if (err) {
@@ -365,11 +365,11 @@ controller.post('/cancelProject', async (req, res) => {
         if (err) { return res.status(def.API_STATUS.CLIENT_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.UNABLE_TO_CANCEL_PROJECT }); }
         if (userDetails.length > 0) {
 
-            
+
             if (req.body.project_status == 'New' || req.body.project_status == 'Resume' || req.body.project_status == 'Pause') {
                 // Update Account Balance of User
                 let updatedAccountBalance = (Math.abs(userDetails[0].account_balance) + Math.abs(req.body.project_cost)).toFixed(2);
-                
+
                 userSchema.updateUserAccountBalance(updatedAccountBalance, userDetails[0].user_id, function (err, userUpdate) {
                     if (err) {
                         return res.status(def.API_STATUS.CLIENT_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.UNABLE_TO_CANCEL_PROJECT });
@@ -584,7 +584,25 @@ controller.post('/getProjectListings', async (req, res) => {
             projectSchema.getProjectListings(postData, async function (err, resp) {
                 if (err) { return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.UNABLE_TO_FETCH_DETAILS }); }
 
-                res.status(def.API_STATUS.SUCCESS.OK).send({ response: msg.RESPONSE.SUCCESS_FETCH_DETAILS, projectListings: resp.projects, totalProjects: resp.count[0].totalProjects });
+                if (resp.projects.length > 0) {
+                    resp.projects.forEach((element) => {
+                        if (element.project_status == 'Cancel') {
+                            element.project_status = 'Cancelled';
+                        } else if (element.project_status == 'Pause') {
+                            element.project_status = 'On Hold';
+                        } else if (element.project_status == 'Pending') {
+                            element.project_status = 'Active';
+                        } else if (element.project_status == 'Resume') {
+                            element.project_status = 'Resumed';
+                        } else {
+                            element.project_status = element.project_status;
+                        }
+                    });
+                }
+
+                setTimeout(() => {
+                    res.status(def.API_STATUS.SUCCESS.OK).send({ response: msg.RESPONSE.SUCCESS_FETCH_DETAILS, projectListings: resp.projects, totalProjects: resp.count[0].totalProjects });
+                }, 4000);
 
             });
         } else {
@@ -615,10 +633,25 @@ controller.post('/getProjectDetailsById', async (req, res) => {
             //console.log(postData);
             projectSchema.getProjectDetailsById(postData, async function (err, projectDetails) {
                 if (err) { return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.UNABLE_TO_FETCH_DETAILS }); }
-                
-                const mergeProjectDetails = Object.assign(projectDetails.projectDetails[0],projectDetails.projectFiles[0]);
 
-                
+
+
+                if(projectDetails.projectDetails[0].project_status == 'Cancel'){
+                    projectDetails.projectDetails[0].show_project_status = 'Cancelled';
+                } else if(projectDetails.projectDetails[0].project_status == 'Pause'){
+                    projectDetails.projectDetails[0].show_project_status = 'On Hold';
+                } else if(projectDetails.projectDetails[0].project_status == 'Pending'){
+                    projectDetails.projectDetails[0].show_project_status = 'Active';
+                } else if(projectDetails.projectDetails[0].project_status == 'Resume'){
+                    projectDetails.projectDetails[0].show_project_status = 'Resumed';
+                } else{
+                    projectDetails.projectDetails[0].show_project_status = projectDetails.projectDetails[0].project_status;
+                }
+
+
+                const mergeProjectDetails = Object.assign(projectDetails.projectDetails[0], projectDetails.projectFiles[0]);
+
+
                 let projectStatusArray = [];
                 await projectStatusSchema.getProjectStatusById(req.body.projectId, async function (err, projectStatus) {
 
@@ -627,7 +660,7 @@ controller.post('/getProjectDetailsById', async (req, res) => {
                     let completedFilePath = config.get('aws.bucket_url');
                     let completedFilePathLocal = 'assets/';
 
-                    
+
                     if (mergeProjectDetails.completed_project_file != '') {
                         var params = {
                             Bucket: config.get('aws.bucket'),
@@ -666,7 +699,7 @@ controller.post('/getProjectDetailsById', async (req, res) => {
                     // Send Response
                     setTimeout(() => {
                         res.status(def.API_STATUS.SUCCESS.OK).send({ response: msg.RESPONSE.SUCCESS_FETCH_DETAILS, project_details: mergeProjectDetails, project_status: projectStatusArray, user_account_balance: userDetails[0].account_balance });
-                    }, 2000);
+                    }, 4000);
 
 
                 });

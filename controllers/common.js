@@ -189,7 +189,7 @@ controller.post('/getDashboardContent', async (req, res) => {
 						projectCount: (dashboardContent.projectCount.length > 0) ? dashboardContent.projectCount[0] : {}
 					});
 
-				}, 3000)
+				}, 4000)
 			});
 
 

@@ -223,7 +223,7 @@ controller.post('/getTicketDetails', async (req, res) => {
 
                             setTimeout(() => {
                                 res.status(def.API_STATUS.SUCCESS.OK).send(responseObj);
-                            }, 2000);
+                            }, 4000);
 
                         })
                     }

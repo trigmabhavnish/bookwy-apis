@@ -63,7 +63,7 @@ controller.post('/getFeedBacks', async (req, res) => {
 
         setTimeout(() => {
             res.status(def.API_STATUS.SUCCESS.OK).send({ totalItems: resp.count[0].totalItem, feedback: resp.feedback, });
-        }, 2000);
+        }, 4000);
 
     })
 
@@ -99,7 +99,7 @@ controller.post('/getFeedBackDetails', async (req, res) => {
 
         setTimeout(() => {
             res.status(def.API_STATUS.SUCCESS.OK).send({ feedback: resp.feedback });
-        }, 3000);
+        }, 4000);
 
     })
 

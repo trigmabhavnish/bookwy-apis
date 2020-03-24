@@ -370,7 +370,7 @@ controller.get('/getProfile', async (req, res) => {
                         setTimeout(() => {
                             //console.log(profile);
                             res.status(def.API_STATUS.SUCCESS.OK).send({ profile: profile, settings: settings });
-                        }, 2000);
+                        }, 4000);
                     }
                 })
 
