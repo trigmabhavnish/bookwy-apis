@@ -363,14 +363,19 @@ controller.get('/getProfile', async (req, res) => {
                                     // S3 File Path
                                     profile[0].profile_pic = completedFilePath + profilePic;
                                 }
+
+
+                                res.status(def.API_STATUS.SUCCESS.OK).send({ profile: profile, settings: settings });
+
                             });
 
+                            
+
+                        }else{
+                            res.status(def.API_STATUS.SUCCESS.OK).send({ profile: profile, settings: settings });
                         }
 
-                        setTimeout(() => {
-                            //console.log(profile);
-                            res.status(def.API_STATUS.SUCCESS.OK).send({ profile: profile, settings: settings });
-                        }, 4000);
+                        
                     }
                 })
 

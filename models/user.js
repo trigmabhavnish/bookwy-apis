@@ -127,7 +127,7 @@ userSchema.updateUserProfile = async function (body, user_id, result) {
     }
     //console.log(body);
     let updateProfileQuery = `UPDATE fw_user SET 
-                                profile_pic = '${body.profile_pic}',
+                                
                                 company_name = '${body.company_name}',
                                 first_name = '${body.first_name}',
                                 last_name = '${body.last_name}',
