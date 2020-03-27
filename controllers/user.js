@@ -71,8 +71,8 @@ controller.post('/signup', validate(validateUser), async (req, res) => {
 
                 const mailBody = {
                     to: req.body.email,
-                    from: config.get('fromEmail'),
-                    subject: "Welcome to Buywy",
+                    from: config.get('fromWelcomeEmail'),
+                    subject: "You’re in!",
                     template_id: config.get('email_templates.user_welcome_template'),
                     dynamic_template_data: {
                         name: name

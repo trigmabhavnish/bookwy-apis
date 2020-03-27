@@ -12,6 +12,8 @@ const {
 } = require('../models/support');
 const aws = require('aws-sdk');
 
+
+
 aws.config.update({
     // Your SECRET ACCESS KEY from AWS should go here,
     // Never share it!
@@ -25,6 +27,10 @@ aws.config.update({
 });
 
 const s3 = new aws.S3();
+
+const {
+    sendMail
+} = require('../helpers/emailService');
 
 /**
  * get All support Listing
@@ -108,9 +114,39 @@ controller.post('/createSupportTicket', async (req, res) => {
                     return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.FAILED_TO_SAVED });
                 }
 
+
+
+
+
                 supportSchema.saveMessage(req.body, result.insertId, userDetails[0].user_id, async function (err, message) {
                     if (err) { return res.status(def.API_STATUS.SERVER_ERROR.INTERNAL_SERVER_ERROR).send({ response: msg.RESPONSE.FAILED_TO_SAVED }); }
                     else {
+
+
+                        // Send Email to User
+
+
+                        const name = userDetails[0].first_name + ' ' + userDetails[0].last_name
+
+                        /* let body_message = 'We have received your support ticket.<br><br><br>Subject: ' + req.body.subject + '<br><br>From: ' + userDetails[0].first_name + '<br><br>Body: ' + req.body.message + '<br><br><br>Our team will be replying to this shortly. &#128578;';
+
+                        let ticket_subject = 'Ticket "' + req.body.subject + '" Created'*/
+
+                        const mailBody = {
+                            to: userDetails[0].email,
+                            from: config.get('fromEmail'),
+                            subject: 'Ticket Created',
+                            template_id: config.get('email_templates.support_ticket_template'),
+                            dynamic_template_data: {
+                                name: (userDetails[0].first_name) ? userDetails[0].first_name : userDetails[0].user_name,
+                                ticket_subject: req.body.subject,
+                                body_message: req.body.message
+                            }
+                        }
+                        sendMail(mailBody)
+                        // Send Email to User
+
+
                         res.status(def.API_STATUS.SUCCESS.OK).send(true);
                     }
                 })

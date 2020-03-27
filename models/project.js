@@ -155,7 +155,7 @@ projectSchema.cancelProject = function (project_id, result) {
             result(err, null);
         } else {
 
-            sql("Select fp.project_name from fw_project as fp WHERE fp.id = ?", project_id, function (err, res) {
+            sql("Select fp.*, fpt.project_type_name from fw_project as fp INNER JOIN fw_project_type as fpt ON fp.project_type_id = fpt.id WHERE fp.id = ?", project_id, function (err, res) {
                 if (err) {
                     //console.log(err);              
                     result(err, null);

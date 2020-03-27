@@ -152,16 +152,36 @@ controller.post('/addNewProject', validate(validateProject), async (req, res) =>
                         // Update Project Status in project status table
 
                         // Send Email to User
+
+                        let turnAroundTime;
+                        if(req.body.word_count > 20000){
+                            turnAroundTime = '4-8 weeks';
+                          }else if((req.body.word_count > 10000) && (req.body.word_count <= 20000)){
+                            turnAroundTime = '2-4 weeks';
+                          }else if((req.body.word_count > 0) && (req.body.word_count <= 10000)){
+                            turnAroundTime = '1-2 weeks';
+                          }else{
+                            turnAroundTime = 'N/A';
+                          }
+
+                        var short_project_name = req.body.project_name.split(' ').slice(0,3).join(' ');  
+
                         const name = userDetails[0].first_name + ' ' + userDetails[0].last_name
                         const mailBody = {
                             to: userDetails[0].email,
                             from: config.get('fromEmail'),
-                            subject: "Project Created",
+                            subject: 'Project Started',
                             template_id: config.get('email_templates.project_updates_template'),
                             dynamic_template_data: {
                                 name: name,
+                                short_project_name: short_project_name,
                                 project_name: req.body.project_name,
-                                project_updates: 'You have just launched project: ' + req.body.project_name
+                                project_niche: req.body.project_topic,
+                                project_type: req.body.project_type,
+                                word_count: req.body.quantity + 'x' + req.body.word_count,
+                                pricing_plan: req.body.pricing_plan,
+                                turnaround_time: turnAroundTime,
+                                total_cost: '$'+req.body.project_cost
                             }
                         }
                         sendMail(mailBody)
@@ -220,22 +240,7 @@ controller.post('/addNewProject', validate(validateProject), async (req, res) =>
                     projectStatusSchema.addProjectStatus(projectStatusDetails, async function (err, newStatusId) { });
                     // Update Project Status in project status table
 
-                    // Send Email to User
-                    /*const name = userDetails[0].first_name + ' ' + userDetails[0].last_name
-                    const mailBody = {
-                        to: userDetails[0].email,
-                        from: config.get('fromEmail'),
-                        subject: "Project Created",
-                        template_id: config.get('email_templates.project_updates_template'),
-                        dynamic_template_data: {
-                            name: name,
-                            project_name: req.body.project_name,
-                            project_updates: 'Your project has been successfully created'
-                        }
-                    }
-                    sendMail(mailBody) */
-                    // Send Email to User
-
+                    
                     res.status(def.API_STATUS.SUCCESS.OK).send({ response: msg.RESPONSE.PROJECT_DRAFTED });
 
                 }
@@ -338,6 +343,49 @@ controller.post('/updateProject', async (req, res) => {
                             projectFileSchema.updateProjectFiles(fileDetails, async function (err, updatedFile) { });
 
                         }
+
+
+                        // Send Email to User
+                        let turnAroundTime;
+                        if(req.body.word_count > 20000){
+                            turnAroundTime = '4-8 weeks';
+                          }else if((req.body.word_count > 10000) && (req.body.word_count <= 20000)){
+                            turnAroundTime = '2-4 weeks';
+                          }else if((req.body.word_count > 0) && (req.body.word_count <= 10000)){
+                            turnAroundTime = '1-2 weeks';
+                          }else{
+                            turnAroundTime = 'N/A';
+                          }
+
+                        var short_project_name = req.body.project_name.split(' ').slice(0,3).join(' ');  
+
+                        const name = userDetails[0].first_name + ' ' + userDetails[0].last_name
+                        const mailBody = {
+                            to: userDetails[0].email,
+                            from: config.get('fromEmail'),
+                            subject: 'Project Started',
+                            template_id: config.get('email_templates.project_updates_template'),
+                            dynamic_template_data: {
+                                name: name,
+                                short_project_name: short_project_name,
+                                project_name: req.body.project_name,
+                                project_niche: req.body.project_topic,
+                                project_type: req.body.project_type,
+                                word_count: req.body.quantity + 'x' + req.body.word_count,
+                                pricing_plan: req.body.pricing_plan,
+                                turnaround_time: turnAroundTime,
+                                total_cost: '$'+req.body.project_cost
+                            }
+                        }
+                        sendMail(mailBody)
+                        // Send Email to User
+
+
+
+
+
+
+
                         // Update File Data in project files table
                         res.status(def.API_STATUS.SUCCESS.OK).send({ response: msg.RESPONSE.PROJECT_UPDATED });
                     });
@@ -391,22 +439,45 @@ controller.post('/cancelProject', async (req, res) => {
                         projectStatusSchema.addProjectStatus(projectStatusDetails, async function (err, newStatusId) { });
                         // Update Project Status in project status table
 
+
+
                         // Send Email to User
+
+                        let turnAroundTime;
+                        if(updateProject[0].word_count > 20000){
+                            turnAroundTime = '4-8 weeks';
+                          }else if((updateProject[0].word_count > 10000) && (updateProject[0].word_count <= 20000)){
+                            turnAroundTime = '2-4 weeks';
+                          }else if((updateProject[0].word_count > 0) && (updateProject[0].word_count <= 10000)){
+                            turnAroundTime = '1-2 weeks';
+                          }else{
+                            turnAroundTime = 'N/A';
+                          }
+
+                        var short_project_name = updateProject[0].project_name.split(' ').slice(0,3).join(' ');  
+
                         const name = userDetails[0].first_name + ' ' + userDetails[0].last_name
                         const mailBody = {
                             to: userDetails[0].email,
                             from: config.get('fromEmail'),
-                            subject: "Project Cancelled",
-                            template_id: config.get('email_templates.project_updates_template'),
+                            subject: 'Project Cancelled',
+                            template_id: config.get('email_templates.project_cancel_template'),
                             dynamic_template_data: {
                                 name: name,
+                                short_project_name: short_project_name,
                                 project_name: updateProject[0].project_name,
-                                project_updates: 'Your project has been successfully cancelled.'
+                                project_niche: updateProject[0].project_topic,
+                                project_type: updateProject[0].project_type,
+                                word_count: updateProject[0].quantity + 'x' + updateProject[0].word_count,
+                                pricing_plan: updateProject[0].project_type_name,
+                                turnaround_time: turnAroundTime,
+                                total_cost: '$'+updateProject[0].project_cost
                             }
                         }
                         sendMail(mailBody)
                         // Send Email to User
 
+                        
                         // Update File Data in project files table
                         res.status(def.API_STATUS.SUCCESS.OK).send({ response: msg.RESPONSE.PROJECT_CANCELLED });
 
@@ -485,23 +556,7 @@ controller.post('/updateProjectStatus', async (req, res) => {
                     userSchema.updateUserAccountBalance(updatedAccountBalance, userDetails[0].user_id, function (err, userUpdate) {
                         if (err) {
                             return res.status(def.API_STATUS.CLIENT_ERROR.BAD_REQUEST).send({ response: msg.RESPONSE.UNABLE_TO_UPDATE_PROJECT_STATUS });
-                        }
-
-                        // Send Email to User
-                        const name = userDetails[0].first_name + ' ' + userDetails[0].last_name
-                        const mailBody = {
-                            to: userDetails[0].email,
-                            from: config.get('fromEmail'),
-                            subject: "Project Created",
-                            template_id: config.get('email_templates.project_updates_template'),
-                            dynamic_template_data: {
-                                name: name,
-                                project_name: req.body.project_name,
-                                project_updates: 'Your project has been successfully created.'
-                            }
-                        }
-                        sendMail(mailBody)
-                        // Send Email to User                        
+                        }                       
                     });
                 }
             }
